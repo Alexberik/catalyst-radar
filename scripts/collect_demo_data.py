@@ -8,7 +8,7 @@ from urllib.parse import urlencode
 from urllib.request import Request, urlopen
 from urllib.error import URLError, HTTPError
 
-ROOT = Path(__file__).resolve().parents[2]
+ROOT = Path(__file__).resolve().parents[1]
 OUT = ROOT / "data" / "demo-market.json"
 NETWORKS = ["solana", "base", "eth", "bsc", "arbitrum"]
 STOCKS = ["AAPL", "NVDA", "TSLA", "RTX", "LMT", "NOC", "CAT", "CRH"]
@@ -159,18 +159,36 @@ def get_news(errors):
         return []
 
 def main():
-    now = utcnow()
+    now_dt = datetime.now(timezone.utc).replace(microsecond=0)
+    now = now_dt.isoformat()
     errors = {}
-    crypto = get_crypto_assets(errors)
-    stocks = get_stocks(errors)
-    news = get_news(errors)
     try:
         prior = json.loads(OUT.read_text(encoding="utf-8")) if OUT.exists() else {}
     except Exception:
         prior = {}
     snapshots = prior.get("snapshots", [])
+    latest = snapshots[-1] if snapshots else {}
+    def age_minutes(snapshot):
+        try:
+            stamp = datetime.fromisoformat(snapshot["timestamp"].replace("Z","+00:00"))
+            return max(0, (now_dt-stamp).total_seconds()/60)
+        except Exception:
+            return 10**9
+    # Fast-moving DEX/pool data every workflow run (nominally 5 minutes).
+    crypto = get_crypto_assets(errors)
+    # Stocks refresh hourly; headlines refresh every 30 minutes. Reuse last
+    # successful sample between refreshes and retain the original observation time.
+    if not latest or age_minutes(latest) >= 60 or not latest.get("equities"):
+        stocks = get_stocks(errors)
+    else:
+        stocks = latest.get("equities", [])
+    if not latest or age_minutes(latest) >= 30 or not latest.get("news"):
+        news = get_news(errors)
+    else:
+        news = latest.get("news", [])
     snapshots.append({"timestamp":now,"crypto_count":len(crypto),"equity_count":len(stocks),
-                      "crypto":crypto[:35],"equities":stocks,"news":news[:12]})
+                      "crypto":crypto[:35],"equities":stocks,"news":news[:12],
+                      "cadence_minutes":{"crypto":5,"news":30,"equities":60}})
     # Keep the rolling 24-hour window (288 snapshots at 5-minute cadence).
     cutoff = time.time() - 24*3600
     kept = []

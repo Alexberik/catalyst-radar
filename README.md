@@ -71,3 +71,12 @@ Research and simulation only, not investment advice. New tokens and micro-cap se
 - Color semantics: green = fewer visible risk flags / positive movement, amber = review required or incomplete data, red = elevated risk flags / negative movement. Green is not a security guarantee.
 - Signal pipeline diagram explains discovery → verification → risk assessment → observe/stop.
 - Equity events remain source discovery only until a licensed stock quote provider is connected; no stock prices are fabricated.
+
+
+## Core-market dashboard and light theme
+- The main navigation now separates **Discovery** (new pools, newly surfaced tokens and boosted profiles) from **Core Market** (large-cap assets and stablecoins).
+- The Core Market tab requests public Binance Spot market statistics for BTC, ETH, XRP, BNB, SOL, DOGE, ADA, TRX, LINK, AVAX and the USDC/USDT pair. USDT is explicitly shown as a $1 peg reference, not represented as a live USD quote.
+- The BTC candlestick chart loads public OHLCV klines and supports 1h, 4h and 1d intervals. Additional views show 24-hour market breadth, trading-volume comparisons and the asset-type mix.
+- The interface uses a high-contrast light palette. Green/red candles represent close above/below open; colors do not imply that an asset is safe or suitable to buy.
+- Browser-accessible public endpoints are used without an API key. Availability and cross-origin access depend on the provider and network. If the endpoint is unavailable, the UI should show an unavailable state rather than invent values.
+- The page remains static GitHub Pages; this dashboard is a visual front-end and does not yet provide persistent historical storage, server-side collection, licensed exchange-wide data, or investment recommendations.

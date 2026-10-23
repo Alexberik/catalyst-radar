@@ -1,7 +1,7 @@
 (() => {
 "use strict";
 const $ = id => document.getElementById(id);
-const state = { assets: [], allAssets: [], news: [], filter: "all", search: "", showAll: false, selected: null, cash: 100, positions: {}, sourceHealth: {dex:false,gecko:false,news:false}, majors:[], candleData:[], candleSymbol:"BTCUSDT", lang:"ru" };
+const state = { assets: [], allAssets: [], news: [], filter: "all", search: "", showAll: false, selected: null, cash: 100, positions: {}, sourceHealth: {dex:false,gecko:false,news:false}, majors:[], candleData:[], candleSymbol:"BTCUSDT", lang:"ru", demoData:null, demoWindow:"5m" };
 const STORE = "catalyst_radar_paper_v2";
 const SOURCES = {
   dexProfiles: "https://api.dexscreener.com/token-profiles/latest/v1",
@@ -317,6 +317,43 @@ function renderNews(){
  }).join("");
  $("news-count").textContent=state.news.length+" stories";$("metric-news").textContent=state.news.length;
 }
+
+async function loadDemoHistory(){
+ try{
+  const url=new URL("data/demo-market.json",document.baseURI);url.searchParams.set("t",Date.now());
+  const data=await fetchJson(url.toString(),10000);
+  state.demoData=data;
+  renderDemoWindow();
+ }catch(e){
+  const status=$("demo-snapshot-time");
+  if(status)status.textContent="GitHub snapshot not available yet · live browser feeds remain active";
+ }
+}
+function renderDemoWindow(){
+ const data=state.demoData, snaps=data&&Array.isArray(data.snapshots)?data.snapshots:[];
+ const status=$("demo-snapshot-time");
+ const current=snaps.length?snaps[snaps.length-1]:null;
+ const minutes={"5m":1,"30m":6,"1h":12,"24h":287}[state.demoWindow]||1;
+ const prior=snaps.length>1?snaps[Math.max(0,snaps.length-1-minutes)]:null;
+ const currentIds=new Set((current&&current.crypto||[]).map(a=>a.id));
+ const priorIds=new Set((prior&&prior.crypto||[]).map(a=>a.id));
+ const fresh=[...currentIds].filter(id=>!priorIds.has(id)).length;
+ const values={
+  "demo-crypto-count":current?(current.crypto||[]).length:"—",
+  "demo-new-count":prior?fresh:"—",
+  "demo-equity-count":current?(current.equities||[]).filter(a=>a.price!=null).length:"—",
+  "demo-news-count":current?(current.news||[]).length:"—"
+ };
+ Object.entries(values).forEach(([id,value])=>{const el=$(id);if(el)el.textContent=String(value);});
+ if(status){
+  if(current){const d=new Date(current.timestamp);status.textContent="GitHub snapshot · "+(isNaN(d)?"time unknown":d.toLocaleString())+" · "+snaps.length+" stored snapshots / 24h window";}
+  else status.textContent="Collector installed · waiting for first scheduled snapshot";
+ }
+ document.querySelectorAll("[data-demo-window]").forEach(btn=>btn.classList.toggle("active",btn.dataset.demoWindow===state.demoWindow));
+ const note=$("demo-window-note");
+ if(note)note.textContent=prior?"Comparing the latest snapshot with approximately "+state.demoWindow+" earlier. Candidate count is not a return forecast.":"History is accumulating; comparisons become meaningful after multiple successful runs.";
+}
+
 function loadPaper(){
  try{const data=JSON.parse(localStorage.getItem(STORE)||"{}");if(Number.isFinite(data.cash))state.cash=data.cash;if(data.positions&&typeof data.positions==="object")state.positions=data.positions;}catch(e){}
 }
@@ -355,12 +392,13 @@ function bind(){
  $("asset-search").addEventListener("input",e=>{state.search=e.target.value.toLowerCase().trim();renderAssets();});
  $("show-more").addEventListener("click",()=>{state.showAll=!state.showAll;$("show-more").textContent=state.showAll?"Show less ↑":"Show more ↓";renderAssets();});
  $("refresh-btn").addEventListener("click",refreshAll);if($("geo-refresh"))$("geo-refresh").addEventListener("click",loadGeoNews);$("majors-refresh").addEventListener("click",()=>{loadMajors();loadCandles();});$("candle-interval").addEventListener("change",loadCandles);$("news-refresh").addEventListener("click",loadNews);$("export-btn").addEventListener("click",exportCsv);
+ document.querySelectorAll("[data-demo-window]").forEach(btn=>btn.addEventListener("click",()=>{state.demoWindow=btn.dataset.demoWindow;renderDemoWindow();}));
  $("paper-buy").addEventListener("click",()=>trade("buy"));$("paper-sell").addEventListener("click",()=>trade("sell"));
  $("paper-reset").addEventListener("click",()=>{if(confirm("Reset the virtual account to $100 and close all positions?")){state.cash=100;state.positions={};savePaper();renderPortfolio();toast("Virtual account reset.");}});
  $("lang-btn").addEventListener("click",()=>toast("English UI labels are being prepared; data and source labels are shown as returned by providers."));
 }
-async function refreshAll(){await Promise.allSettled([loadAssets(),loadNews(),loadMajors(),loadCandles(),loadGeoNews()]);}
+async function refreshAll(){await Promise.allSettled([loadAssets(),loadNews(),loadMajors(),loadCandles(),loadGeoNews(),loadDemoHistory()]);}
 function tick(){const now=new Date();$("utc-clock").textContent=now.toISOString().slice(11,19)+" UTC";}
-function init(){loadPaper();bind();tick();setInterval(tick,1000);refreshAll();loadMajors();loadCandles();setInterval(loadMajors,60000);setInterval(loadCandles,60000);setInterval(loadAssets,90000);setInterval(loadNews,300000);setInterval(loadGeoNews,300000);window.addEventListener("online",()=>refreshAll());}
+function init(){loadPaper();bind();tick();setInterval(tick,1000);refreshAll();loadMajors();loadCandles();setInterval(loadMajors,300000);setInterval(loadCandles,300000);setInterval(loadAssets,300000);setInterval(loadNews,1800000);setInterval(loadGeoNews,1800000);setInterval(loadDemoHistory,300000);window.addEventListener("online",()=>refreshAll());}
 if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",init);else init();
 })();

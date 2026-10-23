@@ -1,5 +1,20 @@
 # CATALYST RADAR — Early Signal Intelligence
 
+## Backend data collection foundation (October 2026)
+
+A first server-side API foundation now lives in [`backend/`](backend/README.md). It is separate from GitHub Pages because static pages cannot safely hold API keys or run a persistent collector.
+
+- Implemented public sources: DEX Screener, GeckoTerminal, CoinPaprika, Binance Spot, GDELT, GoPlus Security, RugCheck, ClinicalTrials.gov and openFDA.
+- Optional keyed sources: CoinGecko, CryptoPanic, Finnhub, X API, Reddit, Helius and Birdeye.
+- SEC EDGAR submissions can be monitored when company CIKs and a descriptive SEC User-Agent are configured.
+- API endpoints include discovery, source health, news/events, token risk checks, biotech catalyst discovery, stock quotes and historical scan storage.
+- Added Docker support, environment-variable template, SQLite development storage, scoring tests and GitHub Actions CI.
+- The backend is **committed but not deployed or connected to the live GitHub Pages frontend yet**. Add credentials only to the backend host's secret settings, never to browser JavaScript or this repository.
+- The current discovery score is a heuristic, not a calibrated probability or 24/48-hour return forecast. Durable production storage, scheduled background collection, licensed stock-data coverage, source corroboration and forward backtests remain next steps.
+
+See [backend setup and provider coverage](backend/README.md).
+
+
 Live site: https://alexberik.github.io/catalyst-radar/
 
 ## Product scope

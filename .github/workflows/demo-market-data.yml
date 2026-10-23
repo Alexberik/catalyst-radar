@@ -31,8 +31,13 @@ jobs:
           python-version: "3.12"
       - name: Collect public demo data
         run: python scripts/collect_demo_data.py
-      - name: Commit rolling 24-hour snapshot history
+      - name: Store rolling history on the market-data branch
         run: |
+          cp data/demo-market.json "$RUNNER_TEMP/demo-market.json"
+          git fetch origin market-data
+          git checkout -B market-data origin/market-data
+          mkdir -p data
+          cp "$RUNNER_TEMP/demo-market.json" data/demo-market.json
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add data/demo-market.json
@@ -40,6 +45,6 @@ jobs:
             echo "No data changes to commit"
           else
             git commit -m "chore(data): refresh demo market snapshot"
-            git pull --rebase origin main
-            git push
+            git pull --rebase origin market-data
+            git push origin HEAD:market-data
           fi

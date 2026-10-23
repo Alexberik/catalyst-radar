@@ -124,7 +124,7 @@ function renderAssets(){
  state.assets=list;
  $("candidate-count").textContent=list.length+" candidates";
  const show=state.showAll?list:list.slice(0,12);
- if(!show.length){body.innerHTML='<tr><td colspan="8" class="empty-cell">No matching assets. If feeds are blocked, try refresh later.</td></tr>';return;}
+ if(!show.length){body.innerHTML='<tr><td colspan="9" class="empty-cell">No matching assets. If feeds are blocked, try refresh later.</td></tr>';return;}
  body.innerHTML=show.map(a=>{
   const price=a.price==null?"—":money(a.price,a.price<0.01?8:a.price<1?5:3);
   const ch1=a.change1h==null?"—":(a.change1h>=0?"+":"")+fmt(a.change1h,1)+"%";

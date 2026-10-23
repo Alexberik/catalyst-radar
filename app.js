@@ -305,7 +305,7 @@ function bind(){
  $("paper-reset").addEventListener("click",()=>{if(confirm("Reset the virtual account to $100 and close all positions?")){state.cash=100;state.positions={};savePaper();renderPortfolio();toast("Virtual account reset.");}});
  $("lang-btn").addEventListener("click",()=>toast("English UI labels are being prepared; data and source labels are shown as returned by providers."));
 }
-async function refreshAll(){await Promise.allSettled([loadAssets(),loadNews()]);}
+async function refreshAll(){await Promise.allSettled([loadAssets(),loadNews(),loadMajors(),loadCandles()]);}
 function tick(){const now=new Date();$("utc-clock").textContent=now.toISOString().slice(11,19)+" UTC";}
 function init(){loadPaper();bind();tick();setInterval(tick,1000);refreshAll();loadMajors();loadCandles();setInterval(loadMajors,60000);setInterval(loadCandles,60000);setInterval(loadAssets,90000);setInterval(loadNews,300000);window.addEventListener("online",()=>refreshAll());}
 if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",init);else init();

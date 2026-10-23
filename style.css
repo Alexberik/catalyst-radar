@@ -343,3 +343,132 @@ a{transition:color .15s ease}
 .demo-source-links{display:flex;gap:16px;flex-wrap:wrap;margin-top:13px;font-size:.8rem}
 .demo-source-links a{color:var(--cyan)}
 @media(max-width:760px){.demo-stats-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.demo-collector-section{padding:17px}}
+
+
+/* === READABILITY PASS: larger type, stronger contrast, calmer visual hierarchy === */
+:root{
+  --text:#f2f7f8;
+  --muted:#c1d0d5;
+  --dim:#9aadb5;
+  --line:#354d58;
+  --line2:#4a6571;
+}
+body{font-size:16px;line-height:1.65}
+.topbar{gap:20px}
+.topbar nav{gap:3px}
+.topbar nav a{font-size:13px;padding:10px 9px;color:#c1d0d5}
+.brand{font-size:15px}
+.brand small{font-size:10px;color:#9aadb5}
+.eyebrow{font-size:11px;letter-spacing:.1em;color:#7ce5dc}
+.hero-copy>p{font-size:17px;line-height:1.8;color:#c1d0d5}
+.trust-tags{font-size:12px;color:#aebfc5}
+.section-heading p,.demo-collector-head p{font-size:14px;line-height:1.8;color:#c1d0d5}
+.section-heading h2{line-height:1.18}
+.console-head{font-size:11px;color:#c1d0d5}
+.console-state b{font-size:16px}
+.console-state p{font-size:13px;color:#c1d0d5;line-height:1.65}
+.console-state small{font-size:11px;color:#a5b8bf}
+.console-metrics span{font-size:10px;color:#a5b8bf;line-height:1.5}
+.console-metrics b{font-size:21px}
+.signal-strip{gap:16px;padding:16px 18px}
+.strip-title{font-size:11px}
+.feed-chip{font-size:11px;color:#c1d0d5}
+.feed-chip b{color:#a9bdc4}
+.strip-time{font-size:11px;color:#a9bdc4}
+.filter{font-size:13px;padding:9px 13px}
+.search-wrap{min-width:250px}
+.search-wrap input{font-size:14px;padding:11px 0}
+.data-table{min-width:980px}
+.data-table th{font-size:11px;padding:15px 14px;color:#c0d0d5!important;letter-spacing:.055em}
+.data-table td{font-size:13px;padding:14px}
+.asset-meta b{font-size:13px}
+.asset-meta small{font-size:11px;color:#a7bac1}
+.number{font-size:12px}
+.token-avatar{font-size:12px}
+.mini-tag,.chain-tag,.risk-tag,.source-tag{font-size:10px;padding:5px 7px}
+.score-number{font-size:14px}
+.row-select{font-size:12px;padding:8px 10px}
+.table-foot{font-size:11px;color:#a8bbc2}
+.text-button{font-size:12px}
+.feature-card{padding:22px}
+.feature-card h3{font-size:18px}
+.feature-card>p{font-size:13px;line-height:1.8;color:#c1d0d5;min-height:unset}
+.source-links a,.equity-card a{font-size:12px}
+.card-foot{font-size:11px;color:#a8bbc2}
+.notice-line p{font-size:12px;line-height:1.8;color:#c1d0d5}
+.news-item h3{font-size:14px;line-height:1.7}
+.news-meta{font-size:11px;color:#a8bbc2}
+.news-label{font-size:10px}
+.geo-thesis p{font-size:13px;color:#c1d0d5}
+.geo-kicker{font-size:10px}
+.geo-trigger-row span{font-size:12px;line-height:1.65}
+.geo-card-head>div small{font-size:12px;color:#b5c7cd}
+.geo-sensitivity{font-size:10px}
+.geo-ticker b{font-size:13px}
+.geo-ticker small{font-size:11px;color:#b5c7cd}
+.geo-ticker em{font-size:10px}
+.geo-catalyst b,.geo-catalyst span{font-size:12px;line-height:1.7}
+.geo-news-meta{font-size:11px;color:#b0c2c8}
+.geo-news-tag{font-size:10px}
+.geo-news-item>a{font-size:13px;line-height:1.7}
+.geo-news-item>small{font-size:11px;color:#b0c2c8}
+.geo-news-foot{font-size:12px;color:#b8c9ce;line-height:1.8}
+.demo-collector-head p{font-size:15px}
+.demo-mode-pill{font-size:12px}
+.demo-window-tabs button{font-size:14px;padding:10px 16px}
+.demo-stats-grid article span{font-size:13px;line-height:1.55;color:#c1d0d5}
+.demo-stats-grid article b{font-size:2rem}
+.demo-stats-grid article small{font-size:12px;color:#aebfc5;line-height:1.55}
+.demo-collector-foot{font-size:12px;color:#c1d0d5;line-height:1.7}
+.demo-source-links{font-size:13px}
+.counter,.section-status,.chart-unit{font-size:11px}
+.chart-empty{font-size:14px;color:#c1d0d5}
+.chart-footnote,.scenario-note{font-size:13px;line-height:1.8}
+.btn{font-size:14px;padding:12px 17px}
+.btn-small{font-size:12px;padding:9px 12px}
+.icon-button{font-size:22px}
+.language{font-size:12px}
+.live-pill,.paper-badge{font-size:11px}
+.kpi-label{font-size:13px}
+.kpi-foot{font-size:12px}
+.visual-head b{font-size:14px}
+.visual-head small{font-size:12px;line-height:1.6;color:#b5c7cd}
+.chart-legend,.risk-scale,.risk-key small{font-size:12px;color:#b5c7cd}
+.chart-index{font-size:11px}
+.chart-axis,.axis-label{fill:#b5c7cd}
+a{ text-underline-offset:3px }
+a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible{
+  outline:3px solid #7ce5dc!important;outline-offset:3px!important
+}
+@media(max-width:900px){
+  body{font-size:15px}
+  .topbar{height:auto;min-height:68px;padding:12px 18px;flex-wrap:wrap;gap:12px}
+  .topbar nav{order:3;width:100%;overflow-x:auto;margin:0;padding:2px 0 5px}
+  .topbar nav a{white-space:nowrap;font-size:13px}
+  .top-actions{margin-left:auto}
+  .hero{padding-top:42px;gap:28px}
+}
+@media(max-width:560px){
+  body{font-size:15px}
+  .shell{width:calc(100% - 28px)}
+  .hero{padding-top:32px;padding-bottom:28px}
+  .hero h1{font-size:clamp(38px,11vw,52px)}
+  .hero-copy>p{font-size:16px}
+  .section{padding-top:48px}
+  .section-heading{align-items:flex-start;flex-direction:column;gap:14px}
+  .section-heading p{font-size:14px}
+  .signal-strip{gap:12px}
+  .feed-chip{font-size:10px}
+  .demo-collector-section{padding:16px}
+  .demo-stats-grid article{padding:12px}
+  .demo-stats-grid article span{font-size:12px}
+  .demo-stats-grid article b{font-size:1.7rem}
+  .demo-stats-grid article small{font-size:11px}
+  .demo-collector-foot{font-size:11px}
+  .filterbar{align-items:stretch}
+  .filter-tabs{gap:6px}
+  .filter{font-size:12px;padding:8px 10px}
+  .search-wrap{width:100%;min-width:0}
+  .feature-card{padding:17px}
+  .geo-thesis h3{font-size:18px}
+}

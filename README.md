@@ -63,3 +63,11 @@ Keep novelty, evidence quality, potential, and manipulation risk as separate sco
 
 ## Disclaimer
 Research and simulation only, not investment advice. New tokens and micro-cap securities can be illiquid or manipulated; total loss is possible. The paper account is virtual.
+
+
+## Visual dashboard (October 2026 redesign)
+- Symmetrical responsive layout with a compact market overview and consistent card/grid spacing.
+- Live-data visualizations: 24h momentum bars, risk-flag distribution, and liquidity-versus-volume scatter plot. Charts render from the current public DEX responses; missing data is shown as unavailable rather than filled with sample values.
+- Color semantics: green = fewer visible risk flags / positive movement, amber = review required or incomplete data, red = elevated risk flags / negative movement. Green is not a security guarantee.
+- Signal pipeline diagram explains discovery → verification → risk assessment → observe/stop.
+- Equity events remain source discovery only until a licensed stock quote provider is connected; no stock prices are fabricated.

@@ -360,7 +360,7 @@ async def token_security(chain: str, address: str):
                 result = next(iter(data["result"].values()))
             return {"chain":chain_key,"address":address,"source":"GoPlus Security","checked_at":now_iso(),"status":"available" if result else "not_found","data":result,"verification":"third_party_risk_signal_not_guarantee"}
         except Exception as exc:
-            return {"chain":chain_key,"address":address,"source":"GoPlus Security","checked_at":now_iso(),"status":"unavailable","error":str(exc)[:180],"data":None}
+            return {"chain":chain_key,"address":address,"source":"GoPlus Security","checked_at":now_iso(),"status":"unavailable","error":safe_error(exc),"data":None}
 
 @app.get(f"{API_PREFIX}/biotech/events")
 async def biotech_events(query: str = Query(default="cancer", min_length=2, max_length=120), limit: int = Query(default=15, ge=1, le=50)):

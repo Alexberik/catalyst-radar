@@ -320,8 +320,8 @@ function renderNews(){
 
 async function loadDemoHistory(){
  try{
-  const url=new URL("data/demo-market.json",document.baseURI);url.searchParams.set("t",Date.now());
-  const data=await fetchJson(url.toString(),10000);
+  const url="https://raw.githubusercontent.com/Alexberik/catalyst-radar/market-data/data/demo-market.json?t="+Date.now();
+  const data=await fetchJson(url,10000);
   state.demoData=data;
   renderDemoWindow();
  }catch(e){

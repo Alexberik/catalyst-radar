@@ -280,6 +280,89 @@ async def sec_filings(client: httpx.AsyncClient) -> list[dict[str, Any]]:
     results = await asyncio.gather(*(one(c) for c in ciks[:10]), return_exceptions=True)
     return [x for r in results if not isinstance(r, Exception) for x in r]
 
+
+CHAIN_IDS = {"ethereum":"1","eth":"1","bsc":"56","bnb":"56","polygon":"137","arbitrum":"42161","avalanche":"43114","base":"8453","optimism":"10","fantom":"250"}
+
+@app.get(f"{API_PREFIX}/security/{{chain}}/{{address}}")
+async def token_security(chain: str, address: str):
+    """Return available contract-risk checks. Missing fields mean unknown, not safe."""
+    chain_key = chain.lower()
+    async with httpx.AsyncClient(timeout=TIMEOUT, follow_redirects=True, headers={"Accept":"application/json","User-Agent":"CatalystRadar/0.1 security research"}) as client:
+        if chain_key in {"solana","sol"}:
+            url = f"https://api.rugcheck.xyz/v1/tokens/{address}/report/summary"
+            try:
+                data = await get_json(client, url, "rugcheck")
+                risks = data.get("risks", [])
+                return {"chain":chain_key,"address":address,"source":"RugCheck","checked_at":now_iso(),"status":"available","score_normalised":data.get("score_normalised"),"lp_locked_pct":data.get("lpLockedPct"),"risks":risks,"verification":"third_party_risk_signal_not_guarantee"}
+            except Exception as exc:
+                return {"chain":chain_key,"address":address,"source":"RugCheck","checked_at":now_iso(),"status":"unavailable","error":str(exc)[:180],"risks":[]}
+        chain_id = CHAIN_IDS.get(chain_key)
+        if not chain_id:
+            return {"chain":chain_key,"address":address,"status":"unsupported_chain","message":"No GoPlus chain ID configured for this network."}
+        headers = {"Accept":"application/json"}
+        if os.getenv("GOPLUS_API_KEY"):
+            headers["Authorization"] = "Bearer " + os.getenv("GOPLUS_API_KEY","")
+        url = f"https://api.gopluslabs.io/api/v1/token_security/{chain_id}?contract_addresses={address.lower()}"
+        try:
+            data = await get_json(client, url, "goplus", headers)
+            result = data.get("result", {}).get(address.lower())
+            if not result and data.get("result"):
+                result = next(iter(data["result"].values()))
+            return {"chain":chain_key,"address":address,"source":"GoPlus Security","checked_at":now_iso(),"status":"available" if result else "not_found","data":result,"verification":"third_party_risk_signal_not_guarantee"}
+        except Exception as exc:
+            return {"chain":chain_key,"address":address,"source":"GoPlus Security","checked_at":now_iso(),"status":"unavailable","error":str(exc)[:180],"data":None}
+
+@app.get(f"{API_PREFIX}/biotech/events")
+async def biotech_events(query: str = Query(default="cancer", min_length=2, max_length=120), limit: int = Query(default=15, ge=1, le=50)):
+    """Discover trial and FDA records; this is event discovery, not medical advice."""
+    async with httpx.AsyncClient(timeout=TIMEOUT, follow_redirects=True, headers={"Accept":"application/json","User-Agent":"CatalystRadar/0.1 research"}) as client:
+        trials_url = "https://clinicaltrials.gov/api/v2/studies?" + str(httpx.QueryParams({"query.term":query,"pageSize":str(limit),"format":"json","sort":"LastUpdatePostDate:desc"}))
+        fda_url = "https://api.fda.gov/drug/drugsfda.json?" + str(httpx.QueryParams({"search":query,"limit":str(min(limit,25))}))
+        trial_task = get_json(client, trials_url, "clinicaltrials")
+        fda_task = get_json(client, fda_url, "openfda_drugsfda")
+        trials, fda = await asyncio.gather(trial_task, fda_task, return_exceptions=True)
+    events = []
+    errors = {}
+    if isinstance(trials, Exception):
+        errors["clinicaltrials"] = str(trials)[:180]
+    else:
+        for study in trials.get("studies", []):
+            p = study.get("protocolSection", {})
+            ident = p.get("identificationModule", {})
+            status = p.get("statusModule", {})
+            events.append({"source":"ClinicalTrials.gov","event_type":"clinical_trial","title":ident.get("briefTitle"),"url":"https://clinicaltrials.gov/study/"+str(ident.get("nctId","")),"published_at":status.get("studyFirstPostDateStruct",{}).get("date"),"last_updated":status.get("studyFirstPostDateStruct",{}).get("date"),"status":status.get("overallStatus"),"verification":"official_primary_source"})
+    if isinstance(fda, Exception):
+        errors["openfda_drugsfda"] = str(fda)[:180]
+    else:
+        for item in fda.get("results", []):
+            app = item.get("application_number")
+            products = item.get("products", [])
+            for product in products[:3]:
+                events.append({"source":"openFDA","event_type":"drug_application","title":product.get("brand_name") or product.get("active_ingredients"),"application_number":app,"url":"https://www.accessdata.fda.gov/scripts/cder/daf/index.cfm?event=overview.process&ApplNo="+str(app or "").replace("NDA","").replace("BLA",""),"status":product.get("marketing_status"),"verification":"official_primary_source"})
+    return {"generated_at":now_iso(),"query":query,"count":len(events),"events":events[:limit],"source_errors":errors,"note":"Records may not be price-moving catalysts; verify event dates and issuer relevance."}
+
+@app.get(f"{API_PREFIX}/equities/quotes")
+async def equity_quotes(symbols: str = Query(default="AAPL,NVDA,RTX,LMT,CAT,CRH", min_length=1, max_length=500)):
+    """Optional real-time quotes from Finnhub; symbols and API key remain server-side."""
+    key = os.getenv("FINNHUB_API_KEY")
+    requested = list(dict.fromkeys(x.strip().upper() for x in symbols.split(",") if x.strip()))[:20]
+    if not key:
+        _source_status["finnhub"] = {"ok":False,"configured":False,"checked_at":now_iso(),"error":"FINNHUB_API_KEY not configured"}
+        return {"generated_at":now_iso(),"configured":False,"quotes":[],"message":"Configure FINNHUB_API_KEY on the backend host to enable stock quotes."}
+    async with httpx.AsyncClient(timeout=TIMEOUT, follow_redirects=True, headers={"Accept":"application/json"}) as client:
+        async def quote(symbol: str) -> dict[str, Any]:
+            url = "https://finnhub.io/api/v1/quote?" + str(httpx.QueryParams({"symbol":symbol,"token":key}))
+            try:
+                d = await get_json(client,url,"finnhub")
+                current = num(d.get("c"))
+                if current is None or current == 0:
+                    return {"symbol":symbol,"status":"unavailable"}
+                return {"symbol":symbol,"price":current,"change":num(d.get("d")),"change_pct":num(d.get("dp")),"high":num(d.get("h")),"low":num(d.get("l")),"open":num(d.get("o")),"previous_close":num(d.get("pc")),"timestamp":d.get("t"),"source":"Finnhub","status":"available"}
+            except Exception as exc:
+                return {"symbol":symbol,"status":"unavailable","error":str(exc)[:150]}
+        quotes = await asyncio.gather(*(quote(s) for s in requested))
+    return {"generated_at":now_iso(),"configured":True,"quotes":quotes}
+
 def persist_scan(assets: list[dict[str, Any]]) -> None:
     timestamp = now_iso()
     with db() as conn:
@@ -324,7 +407,7 @@ async def sources():
         "CryptoPanic": bool(os.getenv("CRYPTOPANIC_API_KEY")),
         "SEC EDGAR": bool(os.getenv("SEC_CIKS")),
         "GDELT": True,
-        "GoPlus Security": bool(os.getenv("GOPLUS_API_KEY")),
+        "GoPlus Security": True,
         "Helius": bool(os.getenv("HELIUS_API_KEY")),
         "Birdeye": bool(os.getenv("BIRDEYE_API_KEY")),
         "RugCheck": True,

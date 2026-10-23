@@ -87,3 +87,12 @@ Research and simulation only, not investment advice. New tokens and micro-cap se
 - Clicking a discovery row or a major-asset quote opens an asset detail dialog with asset type, current quote, 24-hour change, available pool age/address/source, risk flags, and listing-status caveats.
 - The discovery table includes an illustrative "$1 / 24h scenario": it mechanically repeats the previous 24-hour price change once. This is explicitly labeled as a historical-move scenario, not a forecast or expected return. Fees, slippage, taxes, liquidity constraints, and total-loss risk are not included.
 - Risk for major assets is marked "not calculated" in the detail dialog unless a dedicated risk model is connected. The app does not infer official exchange listings from DEX discovery alone.
+
+
+## Geopolitical catalyst watchlist (October 2026)
+- Added a dedicated watchlist for defence/aerospace and construction/reconstruction-related equities, with exchange quote-page links and event triggers to monitor.
+- Defence watchlist examples: RTX, LMT, NOC, RHM.DE, BA.L and 7011.T. Construction/materials examples: CAT, URI, CRH, HEI.DE, HOLN.SW and MT.
+- Added a GDELT public-news query focused on Ukraine, Iran, Israel, political leaders/statements, defence spending/contracts, reconstruction and construction materials.
+- The static site does not yet have a licensed stock market-data connector. Ticker cards link to market quote pages rather than fabricating live prices or intraday changes.
+- A geopolitical headline is a monitoring prompt, not a price forecast. Confirm contract awards, government budgets, tender funding, company exposure and current valuation; de-escalation, high input costs and already-priced expectations can reverse reactions.
+- Visual direction updated from white/light to a midnight graphite + petrol teal + copper/amber palette, keeping red/green reserved for risk and direction.

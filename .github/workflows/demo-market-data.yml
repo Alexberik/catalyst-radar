@@ -39,6 +39,7 @@ jobs:
         run: |
           cp data/demo-market.json "$RUNNER_TEMP/demo-market.json"
           git fetch origin market-data
+          git reset --hard
           git checkout -B market-data origin/market-data
           mkdir -p data
           cp "$RUNNER_TEMP/demo-market.json" data/demo-market.json

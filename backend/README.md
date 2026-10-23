@@ -24,12 +24,15 @@ Open `http://localhost:8000/docs`.
 - `GET /api/v1/news?query=...` — GDELT news, optional CryptoPanic, and optional SEC submissions for configured CIKs.
 - `GET /api/v1/history?asset_id=...` — stored scan snapshots.
 - `GET /api/v1/events/history` — stored event snapshots.
+- `GET /api/v1/security/{chain}/{address}` — GoPlus EVM contract checks or RugCheck Solana risk summary; optional Helius/Birdeye enrichment.
+- `GET /api/v1/biotech/events?query=...` — ClinicalTrials.gov and openFDA drug application records.
+- `GET /api/v1/equities/quotes?symbols=AAPL,RTX,LMT` — Finnhub quotes when a server-side key is configured.
 
 ## Sources and limitations
 
-**Implemented public requests:** DEX Screener profiles/boosts, GeckoTerminal new pools, CoinPaprika tickers, Binance 24-hour spot tickers, GDELT news discovery. CoinGecko and CryptoPanic activate only when server-side keys are configured; SEC EDGAR activates only when `SEC_CIKS` is set and uses `SEC_USER_AGENT`.
+**Implemented requests:** DEX Screener profiles/boosts, GeckoTerminal new pools, CoinPaprika tickers, Binance 24-hour spot tickers, GDELT news discovery, GoPlus token security for supported EVM chains, RugCheck summaries for Solana, ClinicalTrials.gov, and openFDA drug-application records. CoinGecko and CryptoPanic activate only when server-side keys are configured; SEC EDGAR activates only when `SEC_CIKS` is set and uses `SEC_USER_AGENT`. Finnhub quotes require `FINNHUB_API_KEY`. X, Reddit, Helius and Birdeye integrations activate when their server-side credentials are configured.
 
-**Integration registry prepared for next adapters:** GoPlus, Helius, Birdeye, RugCheck, Finnhub, Massive/Polygon, X, Reddit, Telegram, openFDA and ClinicalTrials.gov. They are listed as configurable sources but are **not yet queried by this version**. This avoids pretending that a source is connected when credentials, terms, and endpoint-specific logic have not been verified.
+**Still prepared, not yet queried:** Massive/Polygon and Telegram channel ingestion. A Telegram bot does not provide universal access to arbitrary public channels; only add channels and collection methods for which access is permitted. Verify provider terms and field availability before production use.
 
 ## Important safeguards
 

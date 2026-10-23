@@ -334,7 +334,7 @@ function renderDemoWindow(){
  const status=$("demo-snapshot-time");
  const current=snaps.length?snaps[snaps.length-1]:null;
  const minutes={"5m":1,"30m":6,"1h":12,"24h":287}[state.demoWindow]||1;
- const prior=snaps.length>1?snaps[Math.max(0,snaps.length-1-minutes)]:null;
+ const prior=snaps.length>minutes?snaps[snaps.length-1-minutes]:null;
  const currentIds=new Set((current&&current.crypto||[]).map(a=>a.id));
  const priorIds=new Set((prior&&prior.crypto||[]).map(a=>a.id));
  const fresh=[...currentIds].filter(id=>!priorIds.has(id)).length;
@@ -351,7 +351,7 @@ function renderDemoWindow(){
  }
  document.querySelectorAll("[data-demo-window]").forEach(btn=>btn.classList.toggle("active",btn.dataset.demoWindow===state.demoWindow));
  const note=$("demo-window-note");
- if(note)note.textContent=prior?"Comparing the latest snapshot with approximately "+state.demoWindow+" earlier. Candidate count is not a return forecast.":"History is accumulating; comparisons become meaningful after multiple successful runs.";
+ if(note)note.textContent=prior?"Comparing the latest snapshot with approximately "+state.demoWindow+" earlier. Candidate count is not a return forecast.":"Need at least "+(minutes+1)+" snapshots for a real "+state.demoWindow+" comparison; current history: "+snaps.length+". No missing history is fabricated.";
 }
 
 function loadPaper(){

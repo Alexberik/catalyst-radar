@@ -342,10 +342,10 @@ async def token_security(chain: str, address: str):
                         bdata = await get_json(client, "https://public-api.birdeye.so/defi/token_overview?address="+address, "birdeye", {"X-API-KEY":birdeye_key,"x-chain":"solana"})
                         enrichment["birdeye"] = bdata.get("data", bdata)
                     except Exception as exc:
-                        enrichment["birdeye"] = {"status":"unavailable","error":str(exc)[:120]}
+                        enrichment["birdeye"] = {"status":"unavailable","error":safe_error(exc)}
                 return {"chain":chain_key,"address":address,"source":"RugCheck","checked_at":now_iso(),"status":"available","score_normalised":data.get("score_normalised"),"lp_locked_pct":data.get("lpLockedPct"),"risks":risks,"enrichment":enrichment,"verification":"third_party_risk_signal_not_guarantee"}
             except Exception as exc:
-                return {"chain":chain_key,"address":address,"source":"RugCheck","checked_at":now_iso(),"status":"unavailable","error":str(exc)[:180],"risks":[]}
+                return {"chain":chain_key,"address":address,"source":"RugCheck","checked_at":now_iso(),"status":"unavailable","error":safe_error(exc),"risks":[]}
         chain_id = CHAIN_IDS.get(chain_key)
         if not chain_id:
             return {"chain":chain_key,"address":address,"status":"unsupported_chain","message":"No GoPlus chain ID configured for this network."}
@@ -526,7 +526,7 @@ async def news(query: str = Query(default="cryptocurrency OR bitcoin OR ethereum
     errors = {}
     for name, result in zip(["gdelt","cryptopanic","sec_edgar","x_api","reddit_api"], results):
         if isinstance(result, Exception):
-            errors[name] = str(result)[:220]
+            errors[name] = safe_error(result)
         else:
             events.extend(result)
     seen = set()

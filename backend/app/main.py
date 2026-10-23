@@ -463,7 +463,20 @@ async def sources():
         "Telegram Bot API": bool(os.getenv("TELEGRAM_BOT_TOKEN") and os.getenv("TELEGRAM_CHANNELS")),
         "openFDA": True, "ClinicalTrials.gov": True,
     }
-    return {"checked_at":now_iso(),"sources":[{"name":name,"configured":configured[name],"status":_source_status.get(name.lower().replace(" ","_"),{}).get("ok")} for name in configured],"last_checks":_source_status}
+    aliases = {
+        "DEX Screener":["dexscreener_profiles","dexscreener_boosts"],
+        "GeckoTerminal":["geckoterminal"], "CoinPaprika":["coinpaprika"],
+        "Binance spot public market data":["binance_spot"], "CoinGecko":["coingecko"],
+        "CryptoPanic":["cryptopanic"], "SEC EDGAR":["sec_edgar"], "GDELT":["gdelt_news"],
+        "GoPlus Security":["goplus"], "Helius":["helius"], "Birdeye":["birdeye"],
+        "RugCheck":["rugcheck"], "Finnhub":["finnhub"], "X API":["x_api"],
+        "Reddit API":["reddit_api"], "openFDA":["openfda_drugsfda"],
+        "ClinicalTrials.gov":["clinicaltrials"],
+    }
+    def source_state(name: str):
+        states = [_source_status[k]["ok"] for k in aliases.get(name,[]) if k in _source_status and "ok" in _source_status[k]]
+        return any(states) if states else None
+    return {"checked_at":now_iso(),"sources":[{"name":name,"configured":configured[name],"status":source_state(name)} for name in configured],"last_checks":_source_status}
 
 @app.get(f"{API_PREFIX}/discovery")
 async def discovery(limit: int = Query(default=100, ge=1, le=500), refresh: bool = False):

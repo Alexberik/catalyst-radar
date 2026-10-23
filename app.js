@@ -1,7 +1,7 @@
 (() => {
 "use strict";
 const $ = id => document.getElementById(id);
-const state = { assets: [], allAssets: [], news: [], filter: "all", search: "", showAll: false, selected: null, cash: 100, positions: {}, sourceHealth: {dex:false,gecko:false,news:false}, lang:"ru" };
+const state = { assets: [], allAssets: [], news: [], filter: "all", search: "", showAll: false, selected: null, cash: 100, positions: {}, sourceHealth: {dex:false,gecko:false,news:false}, majors:[], candleData:[], candleSymbol:"BTCUSDT", lang:"ru" };
 const STORE = "catalyst_radar_paper_v2";
 const SOURCES = {
   dexProfiles: "https://api.dexscreener.com/token-profiles/latest/v1",
@@ -154,6 +154,87 @@ async function loadAssets(){
  $("last-updated").textContent="Updated "+new Date().toLocaleTimeString();
  $("scan-progress").style.width="100%";
 }
+
+const CORE_MARKETS=[
+ {symbol:"BTC",pair:"BTCUSDT",name:"Bitcoin",type:"Core"},
+ {symbol:"ETH",pair:"ETHUSDT",name:"Ethereum",type:"Core"},
+ {symbol:"XRP",pair:"XRPUSDT",name:"XRP",type:"Core"},
+ {symbol:"BNB",pair:"BNBUSDT",name:"BNB",type:"Core"},
+ {symbol:"SOL",pair:"SOLUSDT",name:"Solana",type:"Core"},
+ {symbol:"DOGE",pair:"DOGEUSDT",name:"Dogecoin",type:"Core"},
+ {symbol:"ADA",pair:"ADAUSDT",name:"Cardano",type:"Core"},
+ {symbol:"TRX",pair:"TRXUSDT",name:"TRON",type:"Core"},
+ {symbol:"LINK",pair:"LINKUSDT",name:"Chainlink",type:"Core"},
+ {symbol:"AVAX",pair:"AVAXUSDT",name:"Avalanche",type:"Core"},
+ {symbol:"USDC",pair:"USDCUSDT",name:"USD Coin",type:"Stablecoin"},
+ {symbol:"USDT",pair:null,name:"Tether USD",type:"Stablecoin",peg:true}
+];
+const BINANCE="https://api.binance.com/api/v3";
+function renderMajorTickers(){
+ const el=$("major-tickers");if(!el)return;
+ if(!state.majors.length){el.innerHTML='<div class="chart-empty">Котировки не загружены. Проверь соединение и попробуй обновить.</div>';return;}
+ el.innerHTML=state.majors.map(a=>{
+  const price=a.peg?1:Number(a.lastPrice),chg=a.peg?0:Number(a.priceChangePercent),vol=Number(a.quoteVolume)||0;
+  const cl=a.peg?"flat":chg>=0?"up":"down";
+  return '<button class="major-ticker '+(a.pair===state.candleSymbol?"selected":"")+'" data-major="'+$safe(a.pair||"")+'" '+(a.pair?'':'disabled')+'><span class="major-top"><span class="major-symbol">'+$safe(a.symbol)+'</span><span class="major-type '+(a.type==="Stablecoin"?"stable":"core")+'">'+(a.type==="Stablecoin"?"STABLE":"CORE")+'</span></span><span class="major-name">'+$safe(a.name)+'</span><strong class="major-price">'+(a.peg?"~$1.00":money(price,price<1?5:2))+'</strong><span class="major-change '+cl+'">'+(a.peg?"PEG REFERENCE":(chg>=0?"+":"")+fmt(chg,2)+"% / 24H")+'</span><span class="major-meta">'+(a.peg?"Peg reference · not a live quote":"24h vol "+short(vol))+'</span></button>';
+ }).join("");
+ el.querySelectorAll("[data-major]").forEach(btn=>btn.addEventListener("click",()=>{if(!btn.dataset.major)return;state.candleSymbol=btn.dataset.major;renderMajorTickers();loadCandles();}));
+}
+async function loadMajors(){
+ const el=$("major-tickers");if(el&&!state.majors.length)el.innerHTML='<div class="chart-empty">Загружаем котировки…</div>';
+ const pairs=CORE_MARKETS.filter(a=>a.pair).map(a=>a.pair);
+ try{
+  const raw=await fetchJson(BINANCE+"/ticker/24hr?symbols="+encodeURIComponent(JSON.stringify(pairs)),10000);
+  const byPair=new Map((Array.isArray(raw)?raw:[]).map(x=>[x.symbol,x]));
+  state.majors=CORE_MARKETS.map(a=>a.peg?{...a,lastPrice:1,priceChangePercent:0,quoteVolume:0}:byPair.has(a.pair)?{...a,...byPair.get(a.pair)}:null).filter(Boolean);
+  renderMajorTickers();renderBreadth();renderMajorVolumes();renderAssetMix();
+  const btc=state.majors.find(a=>a.pair===state.candleSymbol);
+  if(btc)$("candle-last-price").textContent="Последняя цена: "+money(Number(btc.lastPrice),2);
+ }catch(e){
+  if(el)el.innerHTML='<div class="chart-empty">Не удалось получить публичные котировки. Данные не подменены. Попробуй обновить или проверь доступ к Binance API.</div>';
+  ["breadth-chart","major-volume-chart","asset-mix-chart"].forEach(id=>{const x=$(id);if(x)x.innerHTML='<div class="chart-empty">Нет доступных рыночных данных.</div>';});
+ }
+}
+async function loadCandles(){
+ const el=$("candle-chart");if(!el)return;
+ const interval=$("candle-interval")?.value||"1h";
+ const subtitle=$("candle-subtitle");if(subtitle)subtitle.textContent=interval==="1h"?"Часовые свечи · публичный рынок":interval==="4h"?"4-часовые свечи · публичный рынок":"Дневные свечи · публичный рынок";
+ el.innerHTML='<div class="chart-empty">Загружаем свечи '+$safe(state.candleSymbol)+'…</div>';
+ try{
+  const data=await fetchJson(BINANCE+"/klines?symbol="+encodeURIComponent(state.candleSymbol)+"&interval="+encodeURIComponent(interval)+"&limit=42",10000);
+  if(!Array.isArray(data)||!data.length)throw new Error("No candles");
+  state.candleData=data.map(k=>({time:Number(k[0]),open:Number(k[1]),high:Number(k[2]),low:Number(k[3]),close:Number(k[4]),volume:Number(k[5])}));
+  renderCandles();
+  const m=state.majors.find(a=>a.pair===state.candleSymbol);
+  if(m)$("candle-last-price").textContent="Последняя цена: "+money(Number(m.lastPrice),2);
+ }catch(e){el.innerHTML='<div class="chart-empty">Свечные данные недоступны для этой пары. Выбери другой актив или попробуй позже.</div>';}
+}
+function renderCandles(){
+ const el=$("candle-chart"),data=state.candleData;if(!el||!data.length)return;
+ const W=920,H=330,L=66,R=18,T=18,priceBottom=230,volTop=250,volBottom=292,B=24,pw=W-L-R,ph=priceBottom-T;
+ const min=Math.min(...data.map(x=>x.low)),max=Math.max(...data.map(x=>x.high)),span=max-min||1,maxVol=Math.max(1,...data.map(x=>x.volume));
+ const y=v=>T+(max-v)/span*ph,step=pw/data.length,cw=Math.max(3,Math.min(12,step*.58));
+ let grid="",candles="",vols="";
+ for(let i=0;i<5;i++){const val=max-(span*i/4),yy=y(val);grid+='<line x1="'+L+'" y1="'+yy+'" x2="'+(W-R)+'" y2="'+yy+'" class="candle-grid"/><text x="'+(L-8)+'" y="'+(yy+3)+'" text-anchor="end" class="candle-axis">'+$safe(fmt(val,val<1?5:2))+'</text>';}
+ data.forEach((c,i)=>{const x=L+step*(i+.5),up=c.close>=c.open,cl=up?"bull":"bear",yo=y(Math.max(c.open,c.close)),yc=y(Math.min(c.open,c.close)),body=Math.max(1,yc-yo),vh=c.volume/maxVol*(volBottom-volTop);candles+='<line x1="'+x+'" y1="'+y(c.high)+'" x2="'+x+'" y2="'+y(c.low)+'" class="candle-wick '+cl+'"/><rect x="'+(x-cw/2)+'" y="'+yo+'" width="'+cw+'" height="'+body+'" class="candle-body '+cl+'"><title>'+new Date(c.time).toLocaleString()+' · O '+c.open+' H '+c.high+' L '+c.low+' C '+c.close+'</title></rect>';vols+='<rect x="'+(x-cw/2)+'" y="'+(volBottom-vh)+'" width="'+cw+'" height="'+Math.max(1,vh)+'" class="volume-bar '+cl+'"/>';});
+ const first=data[0],last=data[data.length-1],change=(last.close-first.open)/first.open*100;
+ let labels="";[0,Math.floor(data.length/3),Math.floor(data.length*2/3),data.length-1].forEach(i=>{const x=L+step*(i+.5);labels+='<text x="'+x+'" y="'+(H-5)+'" text-anchor="middle" class="candle-axis">'+new Date(data[i].time).toLocaleDateString(undefined,{month:"short",day:"numeric",hour:interval==="1d"?undefined:"2-digit"})+'</text>';});
+ el.innerHTML='<div class="candle-summary"><span>Диапазон '+money(min,min<1?5:2)+' — '+money(max,max<1?5:2)+'</span><span class="'+(change>=0?"up":"down")+'">'+(change>=0?"+":"")+fmt(change,2)+'% за показанный период</span></div><svg class="candles-svg" viewBox="0 0 '+W+' '+H+'" role="img" aria-label="Candlestick chart for '+$safe(state.candleSymbol)+'">'+grid+'<text x="8" y="14" class="candle-axis">PRICE</text>'+candles+'<line x1="'+L+'" y1="'+volTop+'" x2="'+(W-R)+'" y2="'+volTop+'" class="candle-separator"/><text x="8" y="'+(volTop+12)+'" class="candle-axis">VOLUME</text>'+vols+labels+'</svg>';
+}
+function renderBreadth(){
+ const el=$("breadth-chart");if(!el)return;const a=state.majors.filter(x=>!x.peg&&x.priceChangePercent!=null),up=a.filter(x=>Number(x.priceChangePercent)>0).length,down=a.filter(x=>Number(x.priceChangePercent)<0).length,flat=a.length-up-down,total=a.length||1;
+ el.innerHTML='<div class="breadth-number"><b>'+up+'</b><span>растут</span><b>'+down+'</b><span>падают</span></div><div class="breadth-bar"><span class="bull" style="width:'+(up/total*100)+'%"></span><span class="flat" style="width:'+(flat/total*100)+'%"></span><span class="bear" style="width:'+(down/total*100)+'%"></span></div><div class="breadth-legend"><span><i class="legend-dot green"></i> Рост '+up+'</span><span><i class="legend-dot gray"></i> Без изменения '+flat+'</span><span><i class="legend-dot red"></i> Падение '+down+'</span></div><div class="breadth-list">'+a.slice().sort((x,y)=>Number(y.priceChangePercent)-Number(x.priceChangePercent)).map(x=>'<div><span>'+x.symbol+'</span><b class="'+(Number(x.priceChangePercent)>=0?"up":"down")+'">'+(Number(x.priceChangePercent)>0?"+":"")+fmt(x.priceChangePercent,2)+'%</b></div>').join("")+'</div>';
+}
+function renderMajorVolumes(){
+ const el=$("major-volume-chart");if(!el)return;const rows=state.majors.filter(x=>!x.peg&&Number(x.quoteVolume)>0).sort((a,b)=>Number(b.quoteVolume)-Number(a.quoteVolume)).slice(0,8);if(!rows.length){el.innerHTML='<div class="chart-empty">Нет объёмов.</div>';return;}
+ const max=Math.max(...rows.map(x=>Number(x.quoteVolume)));
+ el.innerHTML='<div class="major-vol-list">'+rows.map(x=>'<div class="major-vol-row"><span>'+x.symbol+'</span><div class="major-vol-track"><i style="width:'+(Number(x.quoteVolume)/max*100)+'%"></i></div><b>'+short(x.quoteVolume)+'</b></div>').join("")+'</div>';
+}
+function renderAssetMix(){
+ const el=$("asset-mix-chart");if(!el)return;const core=state.majors.filter(x=>x.type==="Core").length,stable=state.majors.filter(x=>x.type==="Stablecoin").length,total=core+stable||1;
+ el.innerHTML='<div class="mix-visual"><div class="mix-ring" style="--core:'+Math.round(core/total*100)+'%"><div><b>'+total+'</b><small>активов</small></div></div><div class="mix-legend"><div><i class="legend-dot cyan"></i><span>Крупные криптоактивы</span><b>'+core+'</b></div><div><i class="legend-dot green"></i><span>Стейблкоины</span><b>'+stable+'</b></div></div></div><div class="chart-footnote">USDT показан как ориентир привязки к $1; USDC оценивается по паре USDC/USDT.</div>';
+}
+
 function classifyNews(item){
  const text=((item.title||"")+" "+(item.domain||"")).toLowerCase();
  const official=/sec\.gov|fda\.gov|nasdaq\.com|nyse\.com|binance\.com|coinbase\.com|kraken\.com/.test(text);
@@ -219,13 +300,13 @@ function bind(){
  $("asset-filters").querySelectorAll("[data-filter]").forEach(btn=>btn.addEventListener("click",()=>{$("asset-filters").querySelectorAll(".filter").forEach(x=>x.classList.remove("active"));btn.classList.add("active");state.filter=btn.dataset.filter;renderAssets();}));
  $("asset-search").addEventListener("input",e=>{state.search=e.target.value.toLowerCase().trim();renderAssets();});
  $("show-more").addEventListener("click",()=>{state.showAll=!state.showAll;$("show-more").textContent=state.showAll?"Show less ↑":"Show more ↓";renderAssets();});
- $("refresh-btn").addEventListener("click",refreshAll);$("news-refresh").addEventListener("click",loadNews);$("export-btn").addEventListener("click",exportCsv);
+ $("refresh-btn").addEventListener("click",refreshAll);$("majors-refresh").addEventListener("click",()=>{loadMajors();loadCandles();});$("candle-interval").addEventListener("change",loadCandles);$("news-refresh").addEventListener("click",loadNews);$("export-btn").addEventListener("click",exportCsv);
  $("paper-buy").addEventListener("click",()=>trade("buy"));$("paper-sell").addEventListener("click",()=>trade("sell"));
  $("paper-reset").addEventListener("click",()=>{if(confirm("Reset the virtual account to $100 and close all positions?")){state.cash=100;state.positions={};savePaper();renderPortfolio();toast("Virtual account reset.");}});
  $("lang-btn").addEventListener("click",()=>toast("English UI labels are being prepared; data and source labels are shown as returned by providers."));
 }
 async function refreshAll(){await Promise.allSettled([loadAssets(),loadNews()]);}
 function tick(){const now=new Date();$("utc-clock").textContent=now.toISOString().slice(11,19)+" UTC";}
-function init(){loadPaper();bind();tick();setInterval(tick,1000);refreshAll();setInterval(loadAssets,90000);setInterval(loadNews,300000);window.addEventListener("online",()=>refreshAll());}
+function init(){loadPaper();bind();tick();setInterval(tick,1000);refreshAll();loadMajors();loadCandles();setInterval(loadMajors,60000);setInterval(loadCandles,60000);setInterval(loadAssets,90000);setInterval(loadNews,300000);window.addEventListener("online",()=>refreshAll());}
 if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",init);else init();
 })();

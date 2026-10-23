@@ -427,7 +427,7 @@ async def equity_quotes(symbols: str = Query(default="AAPL,NVDA,RTX,LMT,CAT,CRH"
 
 def persist_scan(assets: list[dict[str, Any]]) -> None:
     timestamp = now_iso()
-    with db() as conn:
+    with db_session() as conn:
         conn.executemany("""INSERT INTO scans
             (scanned_at,asset_id,symbol,name,chain,price_usd,change_24h,liquidity_usd,volume_24h_usd,discovery_score,source,payload_json)
             VALUES (?,?,?,?,?,?,?,?,?,?,?,?)""", [
@@ -438,7 +438,7 @@ def persist_scan(assets: list[dict[str, Any]]) -> None:
         ])
 
 def persist_events(events: list[dict[str, Any]]) -> None:
-    with db() as conn:
+    with db_session() as conn:
         for e in events:
             conn.execute("""INSERT INTO source_events
                 (observed_at,source,event_type,title,url,published_at,verification,payload_json)
@@ -553,7 +553,7 @@ async def news(query: str = Query(default="cryptocurrency OR bitcoin OR ethereum
 
 @app.get(f"{API_PREFIX}/history")
 async def history(asset_id: str | None = None, limit: int = Query(default=100, ge=1, le=1000)):
-    with db() as conn:
+    with db_session() as conn:
         if asset_id:
             rows = conn.execute("SELECT * FROM scans WHERE asset_id=? ORDER BY id DESC LIMIT ?",(asset_id,limit)).fetchall()
         else:
@@ -562,6 +562,6 @@ async def history(asset_id: str | None = None, limit: int = Query(default=100, g
 
 @app.get(f"{API_PREFIX}/events/history")
 async def event_history(limit: int = Query(default=100, ge=1, le=1000)):
-    with db() as conn:
+    with db_session() as conn:
         rows = conn.execute("SELECT * FROM source_events ORDER BY id DESC LIMIT ?",(limit,)).fetchall()
     return {"count":len(rows),"items":[dict(r) for r in rows]}

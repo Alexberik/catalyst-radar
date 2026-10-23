@@ -2,7 +2,7 @@
 
 ## Demo data collection foundation (October 2026)
 
-- Added a public GitHub Actions collector scheduled every 5 minutes. It stores a rolling 24-hour window in [`data/demo-market.json`](data/demo-market.json): DEX/pool snapshots every 5 minutes, news refresh approximately every 30 minutes, and stock quotes approximately hourly.
+- Added a public GitHub Actions collector scheduled every 5 minutes. It stores a rolling 24-hour window on the separate [`market-data` branch](https://github.com/Alexberik/catalyst-radar/tree/market-data/data), avoiding a GitHub Pages rebuild for every market-data update. The frontend reads the public JSON directly from raw.githubusercontent.com. DEX/pool snapshots are collected every 5 minutes, news approximately every 30 minutes, and stock quotes approximately hourly.
 - The live site includes a demo history panel with 5-minute, 30-minute, 1-hour and 24-hour comparison windows. The first comparison becomes meaningful only after the collector has successfully produced multiple snapshots.
 - Workflow: [Demo market data collector](.github/workflows/demo-market-data.yml). A scheduled run can be delayed or skipped by GitHub Actions; check the Actions page for actual run status.
 - Only public no-key sources are used in this demo collector. **Do not commit private API keys to this public repository.**

@@ -259,3 +259,67 @@ body{background:var(--bg);color:var(--text)}
 .geo-news-foot{margin-top:12px;padding-top:12px;border-top:1px solid #2c414b;color:#9bb0b8;font-size:10px;line-height:1.7}
 @media(max-width:900px){.geo-intro-grid,.geo-watch-grid{grid-template-columns:1fr}.geo-news-list{grid-template-columns:1fr}}
 @media(max-width:560px){.geo-tickers{grid-template-columns:1fr}.geo-card-head{grid-template-columns:40px minmax(0,1fr)}.geo-sensitivity{grid-column:2}.geo-thesis{padding:15px}.geo-news-panel{padding:12px}.geo-quote-note{font-size:9px}.geo-badge{font-size:8px}}
+
+
+/* === FINAL POLISHED DARK THEME: graphite / petrol teal / copper amber === */
+:root{
+  color-scheme:dark;
+  --bg:#0c141b;--bg2:#111c24;--panel:#16232c;--panel2:#1c2d37;
+  --line:#2a404b;--line2:#3b5661;--text:#eaf1f2;--muted:#b0c1c7;--dim:#82979f;
+  --lav:#55d4c8;--lav2:#32b7ac;--green:#45d69a;--red:#ff6f7f;--amber:#f4b96d;--cyan:#7bcaf0;
+}
+html{background:#0c141b;color-scheme:dark}
+body{background:#0c141b!important;color:#eaf1f2}
+.ambient{background:radial-gradient(ellipse at 12% -10%,rgba(65,196,185,.12),transparent 36%),radial-gradient(ellipse at 90% 14%,rgba(244,185,109,.055),transparent 29%),linear-gradient(180deg,#0c141b 0%,#101b23 55%,#0b1319 100%)!important}
+main,.shell,section{color:var(--text)}
+/* Ensure all previously light surfaces become dark, not just the hero cards */
+.visual-card,.kpi-card,.equity-card,.source-row,.paper-card,.panel,.chart-card,.stat-card,
+.asset-card,.modal-content,.modal-card,.table-wrap,.feature-card,.hero-console,
+.geo-thesis,.geo-watch-card,.geo-news-panel,.major-ticker,.source-links,
+.discovery-panel,.listing-card,.rumor-card,.infrastructure-card,.paper-lab-card{
+  background-color:#16232c;border-color:#2a404b;color:#eaf1f2;
+}
+input,select,textarea{background-color:#13212a!important;color:#eaf1f2!important;border-color:#3a515d!important}
+input::placeholder,textarea::placeholder{color:#82979f!important}
+button:not(.btn-bright):not(.filter.active){color:inherit}
+hr{border-color:#2a404b}
+table{color:#eaf1f2}
+.data-table th{background:#14222b!important;color:#a9bdc4!important;border-color:#2c424d!important}
+.data-table td{color:#dce7e9!important;border-color:#293d47!important}
+.data-table tbody tr:hover,.data-table tbody tr.asset-row:hover{background:#203740!important}
+.filterbar{background:#14222b!important;border-color:#304853!important}
+.filter{background:#1b2d37!important;color:#d4e0e3!important;border-color:#354d58!important}
+.filter.active{background:#55d4c8!important;color:#0b2022!important;border-color:#55d4c8!important}
+.scenario-note{background:#182832!important;color:#bdcbd0!important;border-color:#3a505a!important}
+.asset-detail-dialog{background:#14232c!important;color:#eaf1f2!important;border-color:#3b535f!important}
+.detail-head{background:linear-gradient(135deg,#1c303a,#14232c)!important;border-color:#344b56!important}
+.detail-summary>div,.detail-scenario>div,.detail-block{background:#192b35!important;border-color:#344b56!important}
+.detail-head h2,.detail-block h3,.detail-summary b,.detail-scenario b{color:#edf4f4!important}
+.detail-head h2 small,.detail-block p,.detail-state,.detail-summary span,.detail-scenario span{color:#a9bbc2!important}
+.detail-close{background:#20343e!important;color:#edf4f4!important;border-color:#405965!important}
+.detail-actions a{background:#203b43!important;color:#8de4db!important;border-color:#3b6269!important}
+.chart-controls select{background:#172831!important;color:#e4edef!important;border-color:#3b535e!important}
+.chart-grid,.candle-grid{stroke:#2a414b!important}
+.candle-axis{fill:#9bb0b7!important}
+.breadth-list>div,.major-vol-row,.major-name,.major-meta,.candle-legend,.breadth-number,.breadth-legend{color:#afc0c6!important}
+.major-price,.major-vol-row b,.mix-ring b{color:#edf4f5!important}
+.major-vol-track{background:#2b414b!important}
+.mix-ring:before{background:#192b35!important}
+.mix-legend>div{color:#bdcbd0!important}.mix-legend b{color:#edf4f5!important}
+.geo-thesis{background:linear-gradient(145deg,#1a2c35,#14232b)!important}
+.geo-thesis.rebuild{background:linear-gradient(145deg,#30291f,#1a2931)!important;border-color:#5b4936!important}
+.geo-news-item,.geo-ticker{background:#182b34!important;border-color:#304853!important}
+.geo-news-item>a{color:#e4edef!important}
+.geo-news-item>a:hover{color:#70e0d5!important}
+.geo-catalyst{background:#12212a!important;border-color:#2b424c!important}
+.geo-quote-note{background:#29271f!important;color:#c9c1b3!important;border-color:#594a35!important}
+.geo-quote-note b{color:#ffd08d!important}
+.btn-bright{background:#55d4c8!important;border-color:#55d4c8!important;color:#0b2022!important}
+.btn-bright:hover{background:#83e5dc!important}
+.btn-outline,.icon-button,.language{background:#172630!important;color:#eaf1f2!important;border-color:#3a515d!important}
+.btn-outline:hover,.text-button:hover{color:#72e0d6!important;border-color:#55d4c8!important}
+.row-select{background:#203a43!important;color:#91e4dc!important;border-color:#3c626b!important}
+.row-select:hover,.row-select.selected{background:#55d4c8!important;color:#0b2022!important}
+a{transition:color .15s ease}
+::selection{background:rgba(85,212,200,.28);color:#fff}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important;scroll-behavior:auto!important}}

@@ -1,6 +1,11 @@
 # CATALYST RADAR — Early Signal Intelligence
 
-## Backend data collection foundation (October 2026)
+## Demo data collection foundation (October 2026)
+
+- Added a public GitHub Actions collector scheduled every 5 minutes. It stores a rolling 24-hour window in [`data/demo-market.json`](data/demo-market.json): DEX/pool snapshots every 5 minutes, news refresh approximately every 30 minutes, and stock quotes approximately hourly.
+- The live site includes a demo history panel with 5-minute, 30-minute, 1-hour and 24-hour comparison windows. The first comparison becomes meaningful only after the collector has successfully produced multiple snapshots.
+- Workflow: [Demo market data collector](.github/workflows/demo-market-data.yml). A scheduled run can be delayed or skipped by GitHub Actions; check the Actions page for actual run status.
+- Only public no-key sources are used in this demo collector. **Do not commit private API keys to this public repository.**
 
 A first server-side API foundation now lives in [`backend/`](backend/README.md). It is separate from GitHub Pages because static pages cannot safely hold API keys or run a persistent collector.
 
@@ -9,7 +14,7 @@ A first server-side API foundation now lives in [`backend/`](backend/README.md).
 - SEC EDGAR submissions can be monitored when company CIKs and a descriptive SEC User-Agent are configured.
 - API endpoints include discovery, source health, news/events, token risk checks, biotech catalyst discovery, stock quotes and historical scan storage.
 - Added Docker support, environment-variable template, SQLite development storage, scoring tests and GitHub Actions CI.
-- The backend is **committed but not deployed or connected to the live GitHub Pages frontend yet**. Add credentials only to the backend host's secret settings, never to browser JavaScript or this repository.
+- The FastAPI backend is **committed but not deployed or connected to the live GitHub Pages frontend yet**. The new GitHub Actions demo collector is separate and writes public snapshots to the repository. Never add credentials to browser JavaScript or this repository.
 - The current discovery score is a heuristic, not a calibrated probability or 24/48-hour return forecast. Durable production storage, scheduled background collection, licensed stock-data coverage, source corroboration and forward backtests remain next steps.
 
 See [backend setup and provider coverage](backend/README.md).

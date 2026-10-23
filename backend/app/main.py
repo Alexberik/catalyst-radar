@@ -27,6 +27,11 @@ _source_status: dict[str, dict[str, Any]] = {}
 def now_iso() -> str:
     return datetime.now(timezone.utc).isoformat()
 
+def safe_error(exc: Exception) -> str:
+    """Avoid reflecting URLs, query-string credentials, or provider responses to public clients."""
+    message = f"{type(exc).__name__}: provider request failed"
+    return message[:180]
+
 def db() -> sqlite3.Connection:
     Path(DB_PATH).parent.mkdir(parents=True, exist_ok=True)
     conn = sqlite3.connect(DB_PATH)
@@ -78,7 +83,7 @@ async def get_json(client: httpx.AsyncClient, url: str, source: str, headers: di
         _source_status[source] = {"ok": True, "cached": False, "checked_at": now_iso(), "latency_ms": round((time.monotonic()-started)*1000), "error": None}
         return data
     except Exception as exc:
-        _source_status[source] = {"ok": False, "cached": False, "checked_at": now_iso(), "error": str(exc)[:220]}
+        _source_status[source] = {"ok": False, "cached": False, "checked_at": now_iso(), "error": safe_error(exc)}
         raise
 
 def num(value: Any) -> float | None:
@@ -273,7 +278,7 @@ async def reddit_news(client: httpx.AsyncClient, query: str) -> list[dict[str, A
         data = await get_json(client, "https://oauth.reddit.com/search.json?"+str(params), "reddit_api", {"Authorization":"Bearer "+token,"User-Agent":os.getenv("REDDIT_USER_AGENT","CatalystRadar/0.1 by research-user")})
         return [{"source":"Reddit","event_type":"social_post","title":x.get("data",{}).get("title"),"url":"https://www.reddit.com"+x.get("data",{}).get("permalink",""),"published_at":datetime.fromtimestamp(x.get("data",{}).get("created_utc",0),timezone.utc).isoformat() if x.get("data",{}).get("created_utc") else None,"score":x.get("data",{}).get("score"),"subreddit":x.get("data",{}).get("subreddit"),"verification":"unverified_social_post"} for x in data.get("data",{}).get("children",[])]
     except Exception as exc:
-        _source_status["reddit_api"] = {"ok":False,"configured":True,"checked_at":now_iso(),"error":str(exc)[:180]}
+        _source_status["reddit_api"] = {"ok":False,"configured":True,"checked_at":now_iso(),"error":safe_error(exc)}
         return []
 
 async def optional_news(client: httpx.AsyncClient) -> list[dict[str, Any]]:
@@ -330,7 +335,7 @@ async def token_security(chain: str, address: str):
                         hdata = response.json().get("result", {})
                         enrichment["helius"] = {"name":hdata.get("content",{}).get("metadata",{}).get("name"),"symbol":hdata.get("content",{}).get("metadata",{}).get("symbol"),"token_info":hdata.get("token_info"),"interface":hdata.get("interface")}
                     except Exception as exc:
-                        enrichment["helius"] = {"status":"unavailable","error":str(exc)[:120]}
+                        enrichment["helius"] = {"status":"unavailable","error":safe_error(exc)}
                 birdeye_key = os.getenv("BIRDEYE_API_KEY")
                 if birdeye_key:
                     try:
@@ -404,7 +409,7 @@ async def equity_quotes(symbols: str = Query(default="AAPL,NVDA,RTX,LMT,CAT,CRH"
                     return {"symbol":symbol,"status":"unavailable"}
                 return {"symbol":symbol,"price":current,"change":num(d.get("d")),"change_pct":num(d.get("dp")),"high":num(d.get("h")),"low":num(d.get("l")),"open":num(d.get("o")),"previous_close":num(d.get("pc")),"timestamp":d.get("t"),"source":"Finnhub","status":"available"}
             except Exception as exc:
-                return {"symbol":symbol,"status":"unavailable","error":str(exc)[:150]}
+                return {"symbol":symbol,"status":"unavailable","error":safe_error(exc)}
         quotes = await asyncio.gather(*(quote(s) for s in requested))
     return {"generated_at":now_iso(),"configured":True,"quotes":quotes}
 
@@ -479,7 +484,7 @@ async def sources():
     return {"checked_at":now_iso(),"sources":[{"name":name,"configured":configured[name],"status":source_state(name)} for name in configured],"last_checks":_source_status}
 
 @app.get(f"{API_PREFIX}/discovery")
-async def discovery(limit: int = Query(default=100, ge=1, le=500), refresh: bool = False):
+async def discovery(limit: int = Query(default=100, ge=1, le=500), ):
     async with httpx.AsyncClient(timeout=TIMEOUT, follow_redirects=True, headers={"Accept":"application/json","User-Agent":"CatalystRadar/0.1 market research"}) as client:
         jobs = [dex_data(client), gecko_data(client), coinpaprika_data(client), binance_data(client), coingecko_data(client)]
         results = await asyncio.gather(*jobs, return_exceptions=True)
@@ -488,7 +493,7 @@ async def discovery(limit: int = Query(default=100, ge=1, le=500), refresh: bool
     errors = {}
     for name, result in zip(names, results):
         if isinstance(result, Exception):
-            errors[name] = str(result)[:220]
+            errors[name] = safe_error(result)
         else:
             raw.extend(result)
     merged: dict[str, dict[str, Any]] = {}

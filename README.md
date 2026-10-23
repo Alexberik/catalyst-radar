@@ -80,3 +80,10 @@ Research and simulation only, not investment advice. New tokens and micro-cap se
 - The interface uses a high-contrast light palette. Green/red candles represent close above/below open; colors do not imply that an asset is safe or suitable to buy.
 - Browser-accessible public endpoints are used without an API key. Availability and cross-origin access depend on the provider and network. If the endpoint is unavailable, the UI should show an unavailable state rather than invent values.
 - The page remains static GitHub Pages; this dashboard is a visual front-end and does not yet provide persistent historical storage, server-side collection, licensed exchange-wide data, or investment recommendations.
+
+
+## Discovery UI improvements
+- Discovery filter buttons use high-contrast labels and colored category markers.
+- Clicking a discovery row or a major-asset quote opens an asset detail dialog with asset type, current quote, 24-hour change, available pool age/address/source, risk flags, and listing-status caveats.
+- The discovery table includes an illustrative "$1 / 24h scenario": it mechanically repeats the previous 24-hour price change once. This is explicitly labeled as a historical-move scenario, not a forecast or expected return. Fees, slippage, taxes, liquidity constraints, and total-loss risk are not included.
+- Risk for major assets is marked "not calculated" in the detail dialog unless a dedicated risk model is connected. The app does not infer official exchange listings from DEX discovery alone.

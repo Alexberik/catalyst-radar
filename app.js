@@ -131,14 +131,46 @@ function renderAssets(){
   const ch24=a.change24==null?"—":(a.change24>=0?"+":"")+fmt(a.change24,1)+"%";
   const flagsText=a.flags.length?a.flags.slice(0,2).join(" · "):((a.liquidity!=null&&a.price!=null)?"LOW FLAGS*":"DATA GAP");
   const avatar=a.image?'<img src="'+$safe(a.image)+'" alt="" loading="lazy" onerror="this.style.display=\'none\'">':$safe((a.symbol||a.name||"?").slice(0,2));
-  return '<tr><td><div class="asset-cell"><span class="token-avatar">'+avatar+'</span><span class="asset-meta"><b>'+$safe(a.symbol==="TOKEN"?(a.profileName||a.name).slice(0,24):a.symbol)+'</b><small>'+$safe(a.chain.toUpperCase())+' · '+$safe(a.source)+'</small></span></div></td><td class="number">'+price+'</td><td class="number"><span class="'+(a.change1h>=0?"pos":a.change1h<0?"neg":"dim")+'">'+ch1+'</span><br><span class="'+(a.change24>=0?"pos":a.change24<0?"neg":"dim")+'">'+ch24+'</span></td><td class="number">'+short(a.liquidity)+'</td><td class="number">'+short(a.volume)+'</td><td><div class="score-cell"><span class="score-number">'+a.score+'</span><span class="score-meter"><span style="width:'+a.score+'%"></span></span></div></td><td><span class="'+(a.flags.some(x=>["THIN LIQ","VOL/LIQ","EXTREME MOVE"].includes(x))?"risk-tag":(a.flags.length||a.price==null||a.liquidity==null?"mini-tag":"safe-tag"))+'">'+$safe(flagsText)+'</span></td><td><button class="row-select '+(state.selected&&state.selected.id===a.id?"selected":"")+'" data-pick="'+$safe(a.id)+'">Select</button></td></tr>';
+  const hasScenario=a.change24!=null&&Number.isFinite(Number(a.change24));
+  const scenarioValue=hasScenario?Math.max(0,1*(1+Number(a.change24)/100)):null;
+  const scenarioDelta=hasScenario?scenarioValue-1:null;
+  const scenarioClass=!hasScenario?"scenario-na":scenarioDelta>0.00001?"scenario-up":scenarioDelta< -0.00001?"scenario-down":"scenario-flat";
+  const scenarioHtml=hasScenario?'<span class="scenario-value">'+money(scenarioValue,3)+'</span><small class="'+scenarioClass+'">'+(scenarioDelta>0?"+":"")+money(scenarioDelta,3)+'</small><em>если повторится 24h move</em>':'<span class="scenario-value">—</span><small class="scenario-na">нет данных</small>';
+  return '<tr class="asset-row" data-row-asset="'+$safe(a.id)+'"><td><div class="asset-cell"><span class="token-avatar">'+avatar+'</span><span class="asset-meta"><b>'+$safe(a.symbol==="TOKEN"?(a.profileName||a.name).slice(0,24):a.symbol)+'</b><small>'+$safe(a.chain.toUpperCase())+' · '+$safe(a.source)+'</small></span></div></td><td class="number">'+price+'</td><td class="number"><span class="'+(a.change1h>=0?"pos":a.change1h<0?"neg":"dim")+'">'+ch1+'</span><br><span class="'+(a.change24>=0?"pos":a.change24<0?"neg":"dim")+'">'+ch24+'</span></td><td class="number">'+short(a.liquidity)+'</td><td class="number">'+short(a.volume)+'</td><td><div class="score-cell"><span class="score-number">'+a.score+'</span><span class="score-meter"><span style="width:'+a.score+'%"></span></span></div></td><td><span class="'+(a.flags.some(x=>["THIN LIQ","VOL/LIQ","EXTREME MOVE"].includes(x))?"risk-tag":(a.flags.length||a.price==null||a.liquidity==null?"mini-tag":"safe-tag"))+'">'+$safe(flagsText)+'</span></td><td><div class="scenario-cell '+scenarioClass+'">'+scenarioHtml+'</div></td><td><button class="row-select '+(state.selected&&state.selected.id===a.id?"selected":"")+'" data-pick="'+$safe(a.id)+'" aria-label="Подробнее об активе">Подробнее ↗</button></td></tr>';
  }).join("");
- body.querySelectorAll("[data-pick]").forEach(btn=>btn.addEventListener("click",()=>selectAsset(state.assets.find(a=>a.id===btn.dataset.pick))));
+ body.querySelectorAll("[data-pick]").forEach(btn=>btn.addEventListener("click",e=>{e.stopPropagation();const a=state.assets.find(x=>x.id===btn.dataset.pick);if(a){selectAsset(a);showAssetDetails(a);}}));
+ body.querySelectorAll("[data-row-asset]").forEach(row=>row.addEventListener("click",e=>{if(e.target.closest("button,a"))return;const a=state.assets.find(x=>x.id===row.dataset.rowAsset);if(a){selectAsset(a);showAssetDetails(a);}}));
  $("asset-footnote").textContent="Live endpoints: GeckoTerminal new pools + DEX Screener profiles/boosts. Score = discovery heuristic, not probability of profit.";
  const tokens=state.allAssets.length;const pools=state.allAssets.filter(a=>a.kind==="new").length;
  $("metric-tokens").textContent=tokens||"—";$("metric-pools").textContent=pools||"—";
 }
 function selectAsset(a){state.selected=a;renderAssets();renderPortfolio();toast((a.symbol||a.name)+" selected. "+(a.price==null?"No live quote available; trading disabled.":"Live quote loaded from "+a.source+"."));$("paper-buy").disabled=a.price==null;$("paper-sell").disabled=a.price==null;}
+function showAssetDetails(a){
+ if(!a)return;
+ let dlg=$("asset-detail-dialog");
+ if(!dlg){dlg=document.createElement("dialog");dlg.id="asset-detail-dialog";dlg.className="asset-detail-dialog";document.body.appendChild(dlg);
+  dlg.addEventListener("click",e=>{if(e.target===dlg)dlg.close();});
+  dlg.addEventListener("click",e=>{if(e.target.closest("[data-close-detail]"))dlg.close();});
+ }
+ const isMajor=!!a.pair||a.type==="Stablecoin";
+ const assetType=isMajor?(a.type==="Stablecoin"?"Стейблкоин":"Крупный криптоактив"):(a.kind==="new"?"Токен в новом пуле":"Криптотокен");
+ const price=isMajor?(a.peg?1:Number(a.lastPrice)):a.price;
+ const change=isMajor?(a.peg?0:Number(a.priceChangePercent)):a.change24;
+ const riskFlags=a.flags||[];
+ const riskLevel=riskFlags.some(x=>["THIN LIQ","VOL/LIQ","EXTREME MOVE"].includes(x))?"Высокий":riskFlags.length||price==null||(!isMajor&&a.liquidity==null)?"Требует проверки":"Меньше явных флагов";
+ const riskClass=riskLevel==="Высокий"?"red":riskLevel==="Требует проверки"?"amber":"green";
+ const scenario=change==null||!Number.isFinite(Number(change))?null:Math.max(0,1+Number(change)/100);
+ const listing=isMajor?(a.peg?"Ориентир привязки к $1; не самостоятельная биржевая котировка.":("Торговая пара "+a.pair+" доступна в публичном рыночном потоке Binance Spot; это не подтверждает будущие листинги.")):(a.kind==="new"?"Обнаружен пул в DEX-источнике. Это не означает листинг на централизованной бирже.":"Обнаружен публичный профиль/упоминание DEX. Дата и статус листинга не подтверждены подключёнными источниками.");
+ const ageText=a.createdAt?new Date(a.createdAt).toLocaleString():(Number.isFinite(Number(a.age))?"Примерно "+fmt(a.age,1)+" ч":"Источник не передал дату создания");
+ const address=a.address||"Не предоставлен источником";
+ const source=a.source||(isMajor?"Binance public market API":"Источник не указан");
+ const href=a.url||(isMajor&&a.pair?"https://www.binance.com/en/trade/"+a.pair:"");
+ const priceText=price==null||!Number.isFinite(Number(price))?"Нет проверенной цены":money(Number(price),Number(price)<0.01?8:Number(price)<1?5:3);
+ const changeText=change==null||!Number.isFinite(Number(change))?"Нет данных":(Number(change)>0?"+":"")+fmt(change,2)+"% за 24 ч";
+ const flagsHtml=riskFlags.length?riskFlags.map(f=>'<span class="detail-flag">'+$safe(f)+'</span>').join(""):'<span class="detail-flag safe">Нет явных флагов в доступных данных</span>';
+ dlg.innerHTML='<div class="detail-head"><div><div class="eyebrow">ASSET INTELLIGENCE / DETAILS</div><h2>'+$safe(a.symbol||a.name||"Актив")+' <small>'+$safe(a.name||a.profileName||"")+'</small></h2></div><button class="detail-close" data-close-detail aria-label="Закрыть">×</button></div><div class="detail-summary"><div><span>Тип актива</span><b>'+$safe(assetType)+'</b></div><div><span>Текущая цена</span><b>'+priceText+'</b></div><div><span>Изменение 24 ч</span><b class="'+(change==null?"":Number(change)>=0?"pos":"neg")+'">'+changeText+'</b></div><div><span>Уровень риска</span><b class="risk-text '+riskClass+'">'+riskLevel+'</b></div></div><section class="detail-block"><h3>Листинг и состояние</h3><p>'+$safe(listing)+'</p><div class="detail-state"><span>Источник: <b>'+$safe(source)+'</b></span><span>Возраст пула: <b>'+$safe(ageText)+'</b></span><span>Сеть: <b>'+$safe(a.chain||"—")+'</b></span></div><div class="detail-flags">'+flagsHtml+'</div></section><section class="detail-block"><h3>Сценарий для $1 на следующие 24 часа</h3>'+(scenario==null?'<p>Нельзя рассчитать сценарий: источник не передал изменение цены за 24 часа.</p>':'<div class="detail-scenario"><div><span>Если изменение последних 24 ч повторится</span><b>'+money(scenario,3)+'</b><small class="'+(scenario>=1?"pos":"neg")+'">Результат: '+(scenario>=1?"+":"")+money(scenario-1,3)+'</small></div><div><span>Если цена не изменится</span><b>$1.000</b><small>$0.000 · без прибыли/убытка</small></div></div>')+'<p class="detail-disclaimer">Это условный расчёт на основе прошлого движения, не модель предсказания. Он не учитывает комиссии, проскальзывание, ликвидность, налоги и риск полной потери средств.</p></section><section class="detail-block"><h3>Проверка риска</h3><p>Оценка обнаружения: <b>'+(a.score==null?"—":$safe(a.score)+"/99")+'</b>. Это эвристический discovery score, а не вероятность роста.</p><p>Контракт / адрес: <code>'+$safe(address)+'</code></p></section><div class="detail-actions">'+(href?'<a href="'+$safe(href)+'" target="_blank" rel="noopener">Открыть источник ↗</a>':"")+'<button class="btn btn-small btn-outline" data-close-detail>Закрыть</button></div>';
+ if(typeof dlg.showModal==="function"){if(!dlg.open)dlg.showModal();}else{dlg.setAttribute("open","");}
+}
 async function loadAssets(){
  $("scan-state").textContent="Scanning public endpoints";$("scan-progress").style.width="22%";$("scan-substate").textContent="Reading DEX profiles, boosts and new pools";
  const [geckoRes,dexRes]=await Promise.allSettled([fetchGecko(),fetchDex()]);
@@ -178,7 +210,7 @@ function renderMajorTickers(){
   const cl=a.peg?"flat":chg>=0?"up":"down";
   return '<button class="major-ticker '+(a.pair===state.candleSymbol?"selected":"")+'" data-major="'+$safe(a.pair||"")+'" '+(a.pair?'':'disabled')+'><span class="major-top"><span class="major-symbol">'+$safe(a.symbol)+'</span><span class="major-type '+(a.type==="Stablecoin"?"stable":"core")+'">'+(a.type==="Stablecoin"?"STABLE":"CORE")+'</span></span><span class="major-name">'+$safe(a.name)+'</span><strong class="major-price">'+(a.peg?"~$1.00":money(price,price<1?5:2))+'</strong><span class="major-change '+cl+'">'+(a.peg?"PEG REFERENCE":(chg>=0?"+":"")+fmt(chg,2)+"% / 24H")+'</span><span class="major-meta">'+(a.peg?"Peg reference · not a live quote":"24h vol "+short(vol))+'</span></button>';
  }).join("");
- el.querySelectorAll("[data-major]").forEach(btn=>btn.addEventListener("click",()=>{if(!btn.dataset.major)return;state.candleSymbol=btn.dataset.major;renderMajorTickers();loadCandles();}));
+ el.querySelectorAll("[data-major]").forEach((btn,i)=>btn.addEventListener("click",()=>{const a=state.majors[i];if(btn.dataset.major){state.candleSymbol=btn.dataset.major;renderMajorTickers();loadCandles();}showAssetDetails(a);}));
 }
 async function loadMajors(){
  const el=$("major-tickers");if(el&&!state.majors.length)el.innerHTML='<div class="chart-empty">Загружаем котировки…</div>';

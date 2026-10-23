@@ -1,193 +1,99 @@
 <!doctype html>
 <html lang="ru">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>CATALYST RADAR — 24–48h market anomaly scanner</title>
-  <meta name="description" content="Радар аномалий рынка: крипта и акции на 24–48 часов. Реальные графики, risk-score, paper trading demo $100. Не инвестиционная рекомендация.">
-  <meta name="theme-color" content="#0a0a0a">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css">
-  <script src="https://unpkg.com/lightweight-charts@4.2.0/dist/lightweight-charts.standalone.production.js" defer></script>
-  <script src="app.js" defer></script>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>CATALYST RADAR — Early Signal Intelligence</title>
+<meta name="description" content="Радар раннего обнаружения: новые токены, мемкоины, листинги, рыночные аномалии и катализаторы малых компаний. Источники и уровень подтверждения видны у каждого сигнала.">
+<meta name="theme-color" content="#17131f">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<script src="app.js" defer></script>
 </head>
 <body>
-  <div class="grid-bg" aria-hidden="true"></div>
-
-  <header class="site-header">
-    <div class="wrap nav">
-      <a class="brand" href="#top"><span class="brand-mark"></span> CATALYST RADAR</a>
-      <ul class="nav-links">
-        <li><a href="#radar">Radar</a></li>
-        <li><a href="#desk">Desk</a></li>
-        <li><a href="#method">Method</a></li>
-        <li><a href="#track">Track record</a></li>
-      </ul>
-      <a class="nav-cta" href="#desk">Demo $100 →</a>
-    </div>
-  </header>
-
-  <main id="top">
-    <section class="wrap hero">
-      <div>
-        <div class="eyebrow">24–48H ANOMALY SCANNER · CRYPTO + EQUITIES</div>
-        <h1>Где рынок уже <em>нервничает</em> — до того, как это станет очевидным.</h1>
-        <p class="hero-lead">Не обещаем x1000. Показываем пересечения объёма, катализаторов и риска на горизонте 24–48 часов. С реальными графиками и честным paper-треком.</p>
-        <div class="hero-actions">
-          <a class="btn btn-primary" href="#desk">Открыть demo-счёт $100</a>
-          <a class="btn btn-ghost" href="#radar">Смотреть radar</a>
-        </div>
-        <div class="trust-line">
-          <span><i class="dot-live"></i> Live price feed</span>
-          <span>Paper trading only</span>
-          <span>Not investment advice</span>
-        </div>
-      </div>
-      <div class="hero-panel" id="hero-panel">
-        <div class="panel-top"><span>SESSION OVERVIEW</span><span id="clock">—</span></div>
-        <div class="mini-stats">
-          <div class="mini-stat"><b id="stat-crypto">—</b><span>CRYPTO IN SCAN</span></div>
-          <div class="mini-stat"><b id="stat-eq">10</b><span>EQUITY WATCH</span></div>
-          <div class="mini-stat"><b id="stat-cash" class="up">$100.00</b><span>DEMO CASH</span></div>
-        </div>
-        <div class="panel-top" style="margin-top:8px"><span>TOP SIGNAL (LIVE)</span><span id="top-signal-meta">loading…</span></div>
-        <div id="top-signal-name" style="font-size:20px;font-weight:500;margin:8px 0 4px">—</div>
-        <div id="top-signal-detail" style="font-size:13px;color:var(--color-ash)">Загружаем рынок…</div>
-      </div>
-    </section>
-
-    <section class="wrap section" id="radar">
-      <div class="section-head">
-        <div>
-          <div class="eyebrow">RADAR</div>
-          <h2>Кандидаты на 24–48ч</h2>
-        </div>
-        <p>Ранжирование по объёму, импульсу и простому risk-score. Крипта — live (CoinGecko). Акции — curated watchlist с демо-динамикой.</p>
-      </div>
-      <div class="tabs" role="tablist">
-        <button class="tab active" data-tab="crypto" type="button">Crypto</button>
-        <button class="tab" data-tab="equity" type="button">Equities</button>
-      </div>
-      <div class="radar-card">
-        <div class="table-scroll">
-          <table class="radar" id="radar-table">
-            <thead>
-              <tr>
-                <th>#</th>
-                <th>Asset</th>
-                <th>Price</th>
-                <th>24h</th>
-                <th>Vol score</th>
-                <th>Risk</th>
-                <th>Tag</th>
-                <th></th>
-              </tr>
-            </thead>
-            <tbody id="radar-body">
-              <tr><td colspan="8" style="padding:24px;color:var(--color-ash)">Loading market data…</td></tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </section>
-
-    <section class="wrap section" id="desk">
-      <div class="section-head">
-        <div>
-          <div class="eyebrow">DESK · PAPER TRADING</div>
-          <h2>Demo-счёт $100</h2>
-        </div>
-        <p>Виртуальные деньги. Покупайте из radar, смотрите PnL. Никаких выводов — только проверка, как ведут себя сигналы.</p>
-      </div>
-      <div class="desk">
-        <div class="panel">
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
-            <h3 style="margin:0" id="chart-title">CHART</h3>
-            <span id="chart-price" style="font-family:var(--font-mono);font-size:12px;color:var(--color-ash)">—</span>
-          </div>
-          <div id="chart-box"></div>
-          <div class="trade-form">
-            <input type="number" id="trade-amount" min="1" step="1" value="25" placeholder="USD amount">
-            <div style="display:flex;gap:6px">
-              <button class="btn btn-buy btn-sm" type="button" id="btn-buy">Buy</button>
-              <button class="btn btn-sell btn-sm" type="button" id="btn-sell">Sell</button>
-            </div>
-          </div>
-          <p style="margin-top:10px;font-size:11px;color:var(--color-mist)">Выберите строку в radar, затем Buy/Sell на сумму в USD. Позиции хранятся в localStorage.</p>
-        </div>
-        <div class="panel">
-          <h3>PORTFOLIO</h3>
-          <div class="cash-line"><span>Cash</span><b id="cash-display">$100.00</b></div>
-          <div class="cash-line"><span>Equity value</span><b id="equity-display">$0.00</b></div>
-          <div class="cash-line"><span>Total</span><b id="total-display">$100.00</b></div>
-          <div class="cash-line"><span>PnL</span><b id="pnl-display">$0.00</b></div>
-          <div id="positions-list" class="portfolio-empty">Нет позиций — купите из radar</div>
-          <button class="btn btn-ghost btn-sm" type="button" id="btn-reset" style="margin-top:12px">Reset demo to $100</button>
-        </div>
-      </div>
-    </section>
-
-    <section class="wrap section" id="method">
-      <div class="section-head">
-        <div>
-          <div class="eyebrow">METHOD</div>
-          <h2>Как это считается</h2>
-        </div>
-        <p>Прозрачная логика MVP. Без «секретных AI» и выдуманных hit-rate.</p>
-      </div>
-      <div class="method-grid">
-        <article class="method-card">
-          <div class="num">01 / UNIVERSE</div>
-          <h4>Ликвидность</h4>
-          <p>Отсекаем тонкий стакан и мусорные объёмы. Без выхода по цене сигнал бесполезен.</p>
-        </article>
-        <article class="method-card">
-          <div class="num">02 / SPIKE</div>
-          <h4>Объём и импульс</h4>
-          <p>Ищем отклонения 24h volume и price change относительно типичного ряда монеты/бумаги.</p>
-        </article>
-        <article class="method-card">
-          <div class="num">03 / RISK</div>
-          <h4>Risk score</h4>
-          <p>Высокая волатильность без объёма = риск. Помечаем, а не прячем. Anti-pump слой в roadmap.</p>
-        </article>
-      </div>
-      <div class="disclaimer">
-        <strong>Дисклеймер.</strong> CATALYST RADAR — демонстрационный аналитический инструмент. Это не индивидуальная инвестиционная рекомендация и не оферта. Рынки волатильны: возможна полная потеря капитала. Demo-счёт использует виртуальные $100. Решения о сделках вы принимаете самостоятельно. Прошлые аномалии не гарантируют будущий результат.
-      </div>
-    </section>
-
-    <section class="wrap section" id="track">
-      <div class="section-head">
-        <div>
-          <div class="eyebrow">TRACK RECORD</div>
-          <h2>Публичный счёт</h2>
-        </div>
-        <p>MVP показывает структуру. После накопления live-сигналов сюда попадёт фактическая статистика «что было в топе → что стало через 24/48ч».</p>
-      </div>
-      <div class="track-stats">
-        <div class="track-stat"><b>—</b><span>SIGNALS LOGGED</span></div>
-        <div class="track-stat"><b>—</b><span>HIT RATE 24H</span></div>
-        <div class="track-stat"><b>—</b><span>AVG MOVE</span></div>
-        <div class="track-stat"><b>LIVE</b><span>DATA MODE</span></div>
-      </div>
-      <div class="radar-card" style="padding:20px;color:var(--color-ash);font-size:13px">
-        Track record заполнится после того, как radar проработает несколько циклов и сохранит снимки топа. Сейчас важнее честный live-feed и paper desk, чем выдуманные проценты.
-      </div>
-    </section>
-  </main>
-
-  <footer class="wrap site-footer">
-    <span>CATALYST RADAR · paper demo</span>
-    <span><a href="https://github.com/Alexberik/catalyst-radar" target="_blank" rel="noopener">GitHub</a> · <a href="https://t.me/alex_berik" target="_blank" rel="noopener">Telegram</a></span>
-  </footer>
-
-  <div class="status-bar" id="status-bar">
-    <span id="status-feed">Feed: idle</span>
-    <span id="status-updated">Updated: —</span>
-    <span>Source: CoinGecko public API (crypto)</span>
-  </div>
-</body>
-</html>
+<div class="ambient" aria-hidden="true"></div>
+<header class="topbar">
+  <a class="brand" href="#top"><span class="brand-symbol"><i></i><i></i><i></i></span><span>CATALYST<span class="brand-light">RADAR</span><small>EARLY SIGNAL INTELLIGENCE</small></span></a>
+  <nav><a href="#discovery">Discovery</a><a href="#listings">Listings</a><a href="#rumors">Rumor desk</a><a href="#sources">Sources</a><a href="#paper">Paper lab</a></nav>
+  <div class="top-actions"><span class="live-pill"><span></span> SCANNING</span><button id="refresh-btn" class="icon-button" aria-label="Refresh feeds" title="Refresh feeds">↻</button><button id="lang-btn" class="language">RU / EN</button></div>
+</header>
+<main id="top">
+<section class="hero shell">
+ <div class="hero-copy">
+  <div class="eyebrow"><span class="pulse"></span> MARKET DISCOVERY TERMINAL <span class="eyebrow-sep">/</span> 24–48H HORIZON</div>
+  <h1>Найти <em>раньше.</em><br>Проверить <em>глубже.</em></h1>
+  <p>Новые токены, мемкоины, ранние пулы, возможные листинги и катализаторы малых компаний — до того, как они попадут в обычные подборки.</p>
+  <div class="hero-actions"><a class="btn btn-bright" href="#discovery">Открыть радар <span>↘</span></a><a class="btn btn-outline" href="#sources">Карта источников <span>↗</span></a></div>
+  <div class="trust-tags"><span>● Реальные данные, где доступны</span><span>◇ Слухи маркируются отдельно</span><span>◷ Никаких выдуманных прогнозов</span></div>
+ </div>
+ <aside class="hero-console">
+  <div class="console-head"><span>RADAR STATUS</span><span class="mono" id="utc-clock">--:--:-- UTC</span></div>
+  <div class="console-main"><div class="radar-orb"><div class="orb-ring ring-one"></div><div class="orb-ring ring-two"></div><div class="orb-core">CR<span>SCAN</span></div><span class="orb-dot d1"></span><span class="orb-dot d2"></span><span class="orb-dot d3"></span></div><div class="console-state"><b id="scan-state">Initializing feeds</b><p id="scan-substate">Connecting to public market endpoints</p><div class="progress-track"><span id="scan-progress"></span></div><small id="scan-updated">Last scan: waiting for response</small></div></div>
+  <div class="console-metrics"><div><b id="metric-tokens">—</b><span>TOKEN CANDIDATES</span></div><div><b id="metric-pools">—</b><span>NEW POOLS</span></div><div><b id="metric-news">—</b><span>NEWS ITEMS</span></div></div>
+ </aside>
+</section>
+<section class="shell signal-strip">
+ <div class="strip-title"><span class="tiny-pulse"></span> LIVE FEED HEALTH</div>
+ <div class="feed-chip"><span class="feed-dot" id="dot-dex"></span><span>DEXSCREENER</span><b id="health-dex">CONNECTING</b></div>
+ <div class="feed-chip"><span class="feed-dot" id="dot-gecko"></span><span>GECKOTERMINAL</span><b id="health-gecko">CONNECTING</b></div>
+ <div class="feed-chip"><span class="feed-dot" id="dot-news"></span><span>GDELT NEWS</span><b id="health-news">CONNECTING</b></div>
+ <div class="feed-chip"><span class="feed-dot warn"></span><span>LISTING / SOCIAL</span><b>LINKED SOURCES</b></div>
+ <div class="strip-time" id="last-updated">Updated —</div>
+</section>
+<section id="discovery" class="shell section">
+ <div class="section-heading"><div><div class="eyebrow">01 / EARLY DISCOVERY</div><h2>Радар новых активов</h2><p>Новые пулы, активность DEX, ликвидность и импульс. Сортировка помогает находить кандидатов, но не означает прогноз доходности.</p></div><div class="heading-tools"><span class="counter" id="candidate-count">0 candidates</span><button class="btn btn-small btn-outline" id="export-btn">Export CSV ↗</button></div></div>
+ <div class="filterbar">
+  <div class="filter-tabs" id="asset-filters"><button class="filter active" data-filter="all">All discovery</button><button class="filter" data-filter="new">New pools</button><button class="filter" data-filter="meme">Meme watch</button><button class="filter" data-filter="boost">Boosted</button><button class="filter" data-filter="highrisk">High risk</button></div>
+  <div class="search-wrap"><span>⌕</span><input id="asset-search" type="search" placeholder="Token, ticker, chain…"></div>
+ </div>
+ <div class="table-wrap"><table class="data-table"><thead><tr><th>ASSET / CHAIN</th><th>PRICE</th><th>1H / 24H</th><th>LIQUIDITY</th><th>24H VOLUME</th><th>DISCOVERY</th><th>RISK FLAGS</th><th></th></tr></thead><tbody id="asset-rows"><tr><td colspan="8" class="empty-cell"><span class="loader"></span> Loading on-chain discovery feeds…</td></tr></tbody></table></div>
+ <div class="table-foot"><span id="asset-footnote">Source: public DEX endpoints. Waiting for first response.</span><button class="text-button" id="show-more">Show more ↓</button></div>
+</section>
+<section id="listings" class="shell section">
+ <div class="section-heading"><div><div class="eyebrow">02 / LISTING INTELLIGENCE</div><h2>До листинга — а не после</h2><p>Отслеживаем официальные объявления и сигналы подготовки к запуску. Ни один сторонний пост не считается подтверждением листинга.</p></div><span class="section-status"><i></i> SOURCE WATCH</span></div>
+ <div class="three-grid">
+  <article class="feature-card listing-card"><div class="card-top"><span class="card-icon">↗</span><span class="source-tag official">OFFICIAL</span></div><h3>Биржевые объявления</h3><p>Новые торговые пары, поддержка депозитов, launchpool, launchpad и delisting notices.</p><div class="source-links"><a href="https://www.binance.com/en/support/announcement" target="_blank" rel="noopener">Binance announcements ↗</a><a href="https://www.coinbase.com/blog" target="_blank" rel="noopener">Coinbase blog ↗</a><a href="https://www.kraken.com/learn" target="_blank" rel="noopener">Kraken Learn ↗</a></div><div class="card-foot"><span class="status-dot amber"></span> External official feeds · API integration pending</div></article>
+  <article class="feature-card listing-card"><div class="card-top"><span class="card-icon violet">◈</span><span class="source-tag signal">ON-CHAIN</span></div><h3>Подготовка к запуску</h3><p>Свежие пулы, рост ликвидности, создание токенов и всплеск активности. Это косвенные признаки, не доказательство листинга.</p><div class="source-links"><a href="https://www.geckoterminal.com/" target="_blank" rel="noopener">GeckoTerminal ↗</a><a href="https://dexscreener.com/" target="_blank" rel="noopener">DEX Screener ↗</a><a href="https://www.dextools.io/" target="_blank" rel="noopener">DEXTools ↗</a></div><div class="card-foot"><span class="status-dot green"></span> Public DEX data</div></article>
+  <article class="feature-card listing-card"><div class="card-top"><span class="card-icon pink">◎</span><span class="source-tag unverified">UNVERIFIED</span></div><h3>Ранние упоминания</h3><p>Сообщения сообщества и слухи могут быть полезным поводом для проверки, но сами по себе не повышают статус до подтверждённого.</p><div class="source-links"><a href="https://x.com/search?q=token%20listing&src=typed_query" target="_blank" rel="noopener">X search: listing ↗</a><a href="https://www.reddit.com/search/?q=token%20listing" target="_blank" rel="noopener">Reddit search ↗</a><a href="https://cryptopanic.com/" target="_blank" rel="noopener">CryptoPanic ↗</a></div><div class="card-foot"><span class="status-dot amber"></span> Manual verification required</div></article>
+ </div>
+ <div class="notice-line"><span>ⓘ</span><p><b>Правило доказательств:</b> официальный источник → подтверждённое событие; несколько независимых источников → corroborated; один анонимный пост → слух. Статус, время публикации и ссылка на первоисточник должны сохраняться у каждой записи.</p></div>
+</section>
+<section id="rumors" class="shell section">
+ <div class="section-heading"><div><div class="eyebrow">03 / INTELLIGENCE DESK</div><h2>Новости, слухи и катализаторы</h2><p>Публичный новостной поток — с указанием издателя и ссылкой на оригинал. Это не мониторинг закрытых чатов или всех аккаунтов соцсетей.</p></div><div class="heading-tools"><span class="counter" id="news-count">0 stories</span><button class="btn btn-small btn-outline" id="news-refresh">Refresh news ↻</button></div></div>
+ <div class="news-layout"><div class="news-list" id="news-list"><div class="empty-cell"><span class="loader"></span> Fetching public headlines…</div></div>
+ <aside class="rumor-panel"><div class="panel-title"><span class="eyebrow">SIGNAL VERIFICATION</span><span class="shield">◇</span></div><h3>Шкала доверия к слухам</h3><div class="verify-step"><span class="verify-num v1">01</span><div><b>Unverified</b><p>Один пост, анонимный источник, нет первичного подтверждения.</p></div></div><div class="verify-step"><span class="verify-num v2">02</span><div><b>Corroborating</b><p>Есть независимые совпадающие сообщения, но первоисточник не найден.</p></div></div><div class="verify-step"><span class="verify-num v3">03</span><div><b>Primary source</b><p>Официальное объявление, регуляторный документ или прямая публикация компании.</p></div></div><div class="verify-step"><span class="verify-num v4">04</span><div><b>Market confirmed</b><p>Событие подтверждено и видно в торговых данных. Цена всё ещё может пойти в любую сторону.</p></div></div><div class="rumor-warning">Слух — это повод исследовать, а не покупать. Подделки, платные промо и манипуляции могут выглядеть как «инсайд».</div></aside></div>
+</section>
+<section id="equities" class="shell section">
+ <div class="section-heading"><div><div class="eyebrow">04 / EQUITY EVENT RADAR</div><h2>Малые компании и ранние катализаторы</h2><p>Фокус на IPO, регуляторных решениях, клинических событиях, контрактах и необычных корпоративных новостях — не на списке крупнейших акций.</p></div><span class="source-tag signal">EVENT-LED</span></div>
+ <div class="equity-grid">
+  <article class="equity-card"><div class="equity-symbol">IPO</div><div><b>Новые размещения</b><p>Подачи S-1/F-1, изменение сроков IPO, выход на биржу и lock-up события.</p><a href="https://www.sec.gov/edgar/search/" target="_blank" rel="noopener">SEC EDGAR search ↗</a></div></article>
+  <article class="equity-card"><div class="equity-symbol">FDA</div><div><b>Biotech / regulatory</b><p>FDA calendar, клинические результаты и документы регуляторов — события с бинарным риском.</p><a href="https://www.fda.gov/news-events/press-announcements" target="_blank" rel="noopener">FDA press releases ↗</a></div></article>
+  <article class="equity-card"><div class="equity-symbol">8-K</div><div><b>Корпоративные события</b><p>Контракты, финансирование, смена руководства, сделки и внезапные раскрытия.</p><a href="https://www.sec.gov/edgar/search/" target="_blank" rel="noopener">SEC filings ↗</a></div></article>
+  <article class="equity-card"><div class="equity-symbol">NEWS</div><div><b>Небольшие публичные компании</b><p>Ищем событие, затем проверяем ликвидность и реальные котировки у лицензированного поставщика.</p><a href="https://www.nasdaq.com/market-activity/ipos" target="_blank" rel="noopener">Nasdaq IPO calendar ↗</a></div></article>
+ </div>
+ <div class="notice-line"><span>!</span><p>В текущей статической версии реальные котировки акций не подключены: здесь показаны двери к первичным источникам, а не фиктивные цены. Для полноценного stock scanner понадобится серверный сборщик и источник котировок с подходящей лицензией.</p></div>
+</section>
+<section id="sources" class="shell section">
+ <div class="section-heading"><div><div class="eyebrow">05 / DATA INFRASTRUCTURE</div><h2>Карта источников</h2><p>Много источников не равно много правды. Каждый поток должен иметь тип, свежесть, ссылку, историю изменений и оценку надёжности.</p></div><span class="counter" id="source-live-count">3 live connectors</span></div>
+ <div class="source-matrix">
+  <div class="source-row source-header"><span>CHANNEL</span><span>WHAT WE COLLECT</span><span>MODE</span><span>STATUS</span></div>
+  <div class="source-row"><div><b>DEX Screener</b><small>DEX market data</small></div><span>Token profiles, boosts, pair liquidity and volume</span><span class="mode-chip live">PUBLIC API</span><span class="source-health" id="row-dex"><i></i> Connecting</span></div>
+  <div class="source-row"><div><b>GeckoTerminal</b><small>New pools</small></div><span>New pool listings, FDV, reserve, price change</span><span class="mode-chip live">PUBLIC API</span><span class="source-health" id="row-gecko"><i></i> Connecting</span></div>
+  <div class="source-row"><div><b>GDELT</b><small>Public news index</small></div><span>Publisher headlines and event discovery queries</span><span class="mode-chip live">PUBLIC API</span><span class="source-health" id="row-news"><i></i> Connecting</span></div>
+  <div class="source-row"><div><b>Exchange announcements</b><small>Primary source</small></div><span>Listing, launchpad, deposit and trading notices</span><span class="mode-chip linked">SOURCE LINKS</span><span class="source-health pending"><i></i> Not ingested yet</span></div>
+  <div class="source-row"><div><b>X / Reddit / Telegram</b><small>Community / rumor</small></div><span>Mentions, repost velocity, source reputation, rumor clusters</span><span class="mode-chip needs">API / COLLECTOR</span><span class="source-health pending"><i></i> Not ingested yet</span></div>
+  <div class="source-row"><div><b>SEC / FDA / IPO</b><small>Company events</small></div><span>Filings, regulatory decisions, offering announcements</span><span class="mode-chip linked">SOURCE LINKS</span><span class="source-health pending"><i></i> Not ingested yet</span></div>
+  <div class="source-row"><div><b>Equity price feed</b><small>Licensed market data</small></div><span>Real-time / delayed quote, volume, float and corporate actions</span><span class="mode-chip needs">PROVIDER KEY</span><span class="source-health pending"><i></i> Not connected</span></div>
+  <div class="source-row"><div><b>On-chain analytics</b><small>Wallet / holder activity</small></div><span>Holder concentration, deployer links, liquidity locks, wallet clusters</span><span class="mode-chip needs">PROVIDER KEY</span><span class="source-health pending"><i></i> Not connected</span></div>
+ </div>
+ <div class="source-principles"><div><span>01</span><b>Provenance first</b><p>Keep URL, publisher, event time, collected time and raw record.</p></div><div><span>02</span><b>Cross-check claims</b><p>Separate official confirmation from rumor and sponsored promotion.</p></div><div><span>03</span><b>Never fake live data</b><p>When a source fails, show stale / unavailable instead of inventing values.</p></div><div><span>04</span><b>Measure outcomes</b><p>Save every published candidate and later compare against 24h / 48h results.</p></div></div>
+</section>
+<section id="paper" class="shell section">
+ <div class="section-heading"><div><div class="eyebrow">06 / PAPER LAB</div><h2>Виртуальный портфель</h2><p>Проверяй идеи без реальных денег. Только активы с доступной котировкой из текущего discovery-потока; результаты сохраняются в этом браузере.</p></div><span class="paper-badge">SIMULATION ONLY</span></div>
+ <div class="paper-layout"><div class="paper-balance"><div class="balance-label">DEMO EQUITY</div><div class="balance-total" id="paper-total">$100.00</div><div class="balance-stats"><div><span>Cash</span><b id="paper-cash">$100.00</b></div><div><span>Unrealized P/L</span><b id="paper-pnl">$0.00</b></div></div><div class="paper-actions"><input id="paper-amount" type="number" min="1" step="1" value="10" aria-label="Trade amount in USD"><button id="paper-buy" class="btn btn-bright">Buy selected</button><button id="paper-sell" class="btn btn-outline">Sell selected</button></div><p class="muted tiny">Симуляция не учитывает полную глубину стакана, сетевые комиссии или проскальзывание. Это не подключение к бирже.</p></div><div class="paper-positions"><div class="panel-title"><b>OPEN POSITIONS</b><span id="position-count">0</span></div><div id="positions-list" class="positions-empty">Select a token from the discovery radar to begin.</div><button id="paper-reset" class="text-button reset-button">Reset virtual account ↺</button></div></div>
+</section>
+<section class="shell final-note"><div class="final-mark">CR</div><div><h3>Discovery is not a promise.</h3><p>CATALYST RADAR помогает замечать неизвестное и проверять гипотезы. Он не гарантирует листинг, рост или прибыль. Низкая капитализация, всплеск упоминаний и высокая оценка discovery могут означать и повышенный риск манипуляции.</p></div><a href="https://github.com/Alexberik/catalyst-radar" target="_blank" rel="noopener">Inspect project ↗</a></section>
+</main>
+<footer class="footer shell"><span>CATALYST RADAR <small>EARLY SIGNAL INTELLIGENCE</small></span><span>Public sources · Source-labelled · Paper only</span><span id="footer-version">BUILD 02 / OCT 2026</span></footer>
+<div id="toast" class="toast" role="status" aria-live="polite"></div>
+</body></html>

@@ -1,396 +1,194 @@
-/* CATALYST RADAR — live crypto feed + paper trading desk */
 (() => {
-  const START_CASH = 100;
-  const STORAGE_KEY = "catalyst_radar_demo_v1";
-
-  const state = {
-    tab: "crypto",
-    crypto: [],
-    equities: [],
-    selected: null,
-    cash: START_CASH,
-    positions: {},
-    chart: null,
-    series: null,
-  };
-
-  const EQUITY_SEED = [
-    { id: "nvda", symbol: "NVDA", name: "NVIDIA", price: 128.4, change24: 2.1, volScore: 72, risk: 38, tag: "AI / earnings" },
-    { id: "tsla", symbol: "TSLA", name: "Tesla", price: 248.2, change24: -1.4, volScore: 68, risk: 55, tag: "High beta" },
-    { id: "amd", symbol: "AMD", name: "AMD", price: 162.8, change24: 1.8, volScore: 64, risk: 42, tag: "Semiconductors" },
-    { id: "pltr", symbol: "PLTR", name: "Palantir", price: 42.6, change24: 3.4, volScore: 78, risk: 60, tag: "Gov / AI" },
-    { id: "smci", symbol: "SMCI", name: "Super Micro", price: 38.9, change24: 4.2, volScore: 81, risk: 70, tag: "Infra spike" },
-    { id: "coin", symbol: "COIN", name: "Coinbase", price: 198.5, change24: 2.7, volScore: 70, risk: 58, tag: "Crypto beta" },
-    { id: "mstr", symbol: "MSTR", name: "MicroStrategy", price: 312.0, change24: 5.1, volScore: 85, risk: 75, tag: "BTC proxy" },
-    { id: "arm", symbol: "ARM", name: "Arm Holdings", price: 142.3, change24: 1.2, volScore: 61, risk: 48, tag: "Chip design" },
-    { id: "meta", symbol: "META", name: "Meta", price: 582.1, change24: 0.8, volScore: 55, risk: 32, tag: "Mega-cap" },
-    { id: "avgo", symbol: "AVGO", name: "Broadcom", price: 178.4, change24: 1.5, volScore: 63, risk: 36, tag: "Networking" },
-  ];
-
-  const $ = (id) => document.getElementById(id);
-
-  function load() {
-    try {
-      const raw = localStorage.getItem(STORAGE_KEY);
-      if (!raw) return;
-      const data = JSON.parse(raw);
-      if (typeof data.cash === "number") state.cash = data.cash;
-      if (data.positions && typeof data.positions === "object") state.positions = data.positions;
-    } catch (_) {}
-  }
-
-  function save() {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify({
-      cash: state.cash,
-      positions: state.positions,
-    }));
-  }
-
-  function fmt(n, d = 2) {
-    if (n == null || Number.isNaN(n)) return "—";
-    return Number(n).toLocaleString("en-US", { minimumFractionDigits: d, maximumFractionDigits: d });
-  }
-
-  function fmtUsd(n) {
-    const v = Number(n) || 0;
-    const sign = v < 0 ? "-" : "";
-    return sign + "$" + fmt(Math.abs(v));
-  }
-
-  function riskLabel(r) {
-    if (r >= 70) return { text: "HIGH", cls: "badge-risk" };
-    if (r >= 45) return { text: "MED", cls: "badge-cat" };
-    return { text: "LOW", cls: "badge-opp" };
-  }
-
-  function tickClock() {
-    const el = $("clock");
-    if (el) el.textContent = new Date().toISOString().slice(11, 19) + " UTC";
-  }
-
-  function equityMark() {
-    state.equities = EQUITY_SEED.map((e) => {
-      const jitter = (Math.random() - 0.5) * 0.6;
-      const price = +(e.price * (1 + jitter / 100)).toFixed(2);
-      const change24 = +(e.change24 + (Math.random() - 0.5) * 0.3).toFixed(2);
-      return { ...e, price, change24, kind: "equity" };
-    }).sort((a, b) => b.volScore - a.volScore);
-  }
-
-  async function fetchCrypto() {
-    const feed = $("status-feed");
-    if (feed) feed.textContent = "Feed: fetching…";
-    try {
-      const url =
-        "https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=volume_desc&per_page=40&page=1&sparkline=false&price_change_percentage=24h";
-      const res = await fetch(url);
-      if (!res.ok) throw new Error("HTTP " + res.status);
-      const data = await res.json();
-      state.crypto = data.map((c, i) => {
-        const change = c.price_change_percentage_24h || 0;
-        const vol = c.total_volume || 0;
-        const volScore = Math.min(99, Math.round(40 + Math.log10(Math.max(vol, 1)) * 6 + Math.abs(change)));
-        const risk = Math.min(95, Math.round(25 + Math.abs(change) * 2.2 + (i > 20 ? 15 : 0)));
-        let tag = "Liquidity";
-        if (Math.abs(change) > 8) tag = "Impulse";
-        if (volScore > 80 && Math.abs(change) > 4) tag = "Volume spike";
-        if (risk > 70) tag = "Elevated risk";
-        return {
-          id: c.id,
-          symbol: (c.symbol || "").toUpperCase(),
-          name: c.name,
-          price: c.current_price,
-          change24: change,
-          volScore,
-          risk,
-          tag,
-          kind: "crypto",
-        };
-      });
-      state.crypto.sort((a, b) => (b.volScore * 0.7 + b.change24 * 0.3) - (a.volScore * 0.7 + a.change24 * 0.3));
-      if (feed) feed.textContent = "Feed: live (CoinGecko)";
-      const upd = $("status-updated");
-      if (upd) upd.textContent = "Updated: " + new Date().toLocaleTimeString();
-      const sc = $("stat-crypto");
-      if (sc) sc.textContent = String(state.crypto.length);
-    } catch (err) {
-      console.error(err);
-      if (feed) feed.textContent = "Feed: error — using fallback";
-      if (!state.crypto.length) {
-        state.crypto = [
-          { id: "bitcoin", symbol: "BTC", name: "Bitcoin", price: 67000, change24: 1.2, volScore: 88, risk: 28, tag: "Fallback", kind: "crypto" },
-          { id: "ethereum", symbol: "ETH", name: "Ethereum", price: 3400, change24: 2.1, volScore: 84, risk: 32, tag: "Fallback", kind: "crypto" },
-          { id: "solana", symbol: "SOL", name: "Solana", price: 145, change24: 3.4, volScore: 80, risk: 45, tag: "Fallback", kind: "crypto" },
-        ];
-      }
-    }
-  }
-
-  function currentList() {
-    return state.tab === "crypto" ? state.crypto : state.equities;
-  }
-
-  function renderRadar() {
-    const list = currentList().slice(0, 10);
-    const body = $("radar-body");
-    if (!body) return;
-    if (!list.length) {
-      body.innerHTML = `<tr><td colspan="8" style="padding:24px;color:var(--color-ash)">No data</td></tr>`;
-      return;
-    }
-    body.innerHTML = list
-      .map((a, i) => {
-        const chCls = a.change24 >= 0 ? "chg-up" : "chg-down";
-        const rl = riskLabel(a.risk);
-        const selected = state.selected && state.selected.id === a.id;
-        return `<tr data-id="${a.id}" style="${selected ? "background:rgba(103,152,255,.06)" : ""}">
-          <td style="color:var(--color-mist);font-family:var(--font-mono)">${String(i + 1).padStart(2, "0")}</td>
-          <td><div class="asset-cell"><b>${a.symbol}</b><small>${a.name}</small></div></td>
-          <td style="font-family:var(--font-mono)">$${fmt(a.price, a.price < 1 ? 6 : 2)}</td>
-          <td class="${chCls}" style="font-family:var(--font-mono)">${a.change24 >= 0 ? "+" : ""}${fmt(a.change24, 2)}%</td>
-          <td style="font-family:var(--font-mono)">${a.volScore}</td>
-          <td><span class="badge ${rl.cls}">${rl.text}</span></td>
-          <td style="color:var(--color-ash);font-size:12px">${a.tag}</td>
-          <td><button class="btn btn-ghost btn-sm" data-select="${a.id}" type="button">Select</button></td>
-        </tr>`;
-      })
-      .join("");
-
-    body.querySelectorAll("[data-select]").forEach((btn) => {
-      btn.addEventListener("click", () => {
-        const id = btn.getAttribute("data-select");
-        const item = currentList().find((x) => x.id === id);
-        if (item) selectAsset(item);
-      });
-    });
-
-    const top = state.crypto[0] || list[0];
-    if (top) {
-      const n = $("top-signal-name");
-      const d = $("top-signal-detail");
-      const m = $("top-signal-meta");
-      if (n) n.textContent = `${top.symbol} · $${fmt(top.price, top.price < 1 ? 4 : 2)}`;
-      if (d) d.textContent = `${top.name} · 24h ${top.change24 >= 0 ? "+" : ""}${fmt(top.change24)}% · vol ${top.volScore} · risk ${top.risk}`;
-      if (m) m.textContent = top.tag;
-    }
-  }
-
-  function selectAsset(asset) {
-    state.selected = asset;
-    const title = $("chart-title");
-    const price = $("chart-price");
-    if (title) title.textContent = `CHART · ${asset.symbol}`;
-    if (price) price.textContent = `$${fmt(asset.price, asset.price < 1 ? 6 : 2)} · ${asset.change24 >= 0 ? "+" : ""}${fmt(asset.change24)}%`;
-    renderRadar();
-    drawChart(asset);
-  }
-
-  function drawChart(asset) {
-    const el = $("chart-box");
-    if (!el || typeof LightweightCharts === "undefined") return;
-    if (state.chart) {
-      try { state.chart.remove(); } catch (_) {}
-      state.chart = null;
-      state.series = null;
-    }
-    state.chart = LightweightCharts.createChart(el, {
-      width: el.clientWidth,
-      height: 280,
-      layout: { background: { color: "#0a0a0a" }, textColor: "#a7a7a7" },
-      grid: { vertLines: { color: "#1e1e1e" }, horzLines: { color: "#1e1e1e" } },
-      rightPriceScale: { borderColor: "#313131" },
-      timeScale: { borderColor: "#313131" },
-    });
-    state.series = state.chart.addAreaSeries({
-      lineColor: "#6798ff",
-      topColor: "rgba(103,152,255,0.25)",
-      bottomColor: "rgba(103,152,255,0.02)",
-      lineWidth: 2,
-    });
-    const points = [];
-    let p = asset.price * (1 - (asset.change24 || 0) / 200);
-    const now = Math.floor(Date.now() / 1000);
-    for (let i = 48; i >= 0; i--) {
-      p = p * (1 + (Math.random() - 0.48) * 0.008);
-      points.push({ time: now - i * 1800, value: +p.toFixed(6) });
-    }
-    points[points.length - 1].value = asset.price;
-    state.series.setData(points);
-    state.chart.timeScale().fitContent();
-  }
-
-  function markPrices() {
-    const all = [...state.crypto, ...state.equities];
-    Object.values(state.positions).forEach((pos) => {
-      const m = all.find((x) => x.id === pos.id);
-      if (m) pos.price = m.price;
-    });
-  }
-
-  function portfolioValue() {
-    markPrices();
-    let equity = 0;
-    Object.values(state.positions).forEach((p) => {
-      equity += p.qty * p.price;
-    });
-    const total = state.cash + equity;
-    const pnl = total - START_CASH;
-    return { equity, total, pnl };
-  }
-
-  function renderPortfolio() {
-    const { equity, total, pnl } = portfolioValue();
-    const set = (id, val) => { const el = $(id); if (el) el.textContent = val; };
-    set("cash-display", fmtUsd(state.cash));
-    set("equity-display", fmtUsd(equity));
-    set("total-display", fmtUsd(total));
-    const pnlEl = $("pnl-display");
-    if (pnlEl) {
-      pnlEl.textContent = (pnl >= 0 ? "+" : "") + fmtUsd(pnl);
-      pnlEl.style.color = pnl >= 0 ? "var(--color-up)" : "var(--color-down)";
-    }
-    const sc = $("stat-cash");
-    if (sc) {
-      sc.textContent = fmtUsd(state.cash);
-      sc.className = pnl >= 0 ? "up" : "down";
-    }
-
-    const list = $("positions-list");
-    if (!list) return;
-    const rows = Object.values(state.positions);
-    if (!rows.length) {
-      list.innerHTML = `<div class="portfolio-empty">Нет позиций — купите из radar</div>`;
-      return;
-    }
-    list.innerHTML = rows
-      .map((p) => {
-        const val = p.qty * p.price;
-        const cost = p.qty * p.avg;
-        const lp = val - cost;
-        return `<div class="portfolio-row">
-          <div><b>${p.symbol}</b><div style="font-size:11px;color:var(--color-ash);font-family:var(--font-mono)">${fmt(p.qty, 6)} · avg $${fmt(p.avg, 4)}</div></div>
-          <div style="text-align:right;font-family:var(--font-mono)">
-            <div>${fmtUsd(val)}</div>
-            <div style="font-size:11px;color:${lp >= 0 ? "var(--color-up)" : "var(--color-down)"}">${lp >= 0 ? "+" : ""}${fmtUsd(lp)}</div>
-          </div>
-        </div>`;
-      })
-      .join("");
-  }
-
-  function buy() {
-    if (!state.selected) return alert("Сначала выберите актив в таблице Radar");
-    const usd = Number($("trade-amount").value);
-    if (!usd || usd <= 0) return alert("Укажите сумму в USD");
-    if (usd > state.cash + 1e-9) return alert("Недостаточно cash на demo-счёте");
-    const price = state.selected.price;
-    if (!price || price <= 0) return;
-    const qty = usd / price;
-    const id = state.selected.id;
-    const prev = state.positions[id];
-    if (prev) {
-      const newQty = prev.qty + qty;
-      prev.avg = (prev.avg * prev.qty + price * qty) / newQty;
-      prev.qty = newQty;
-      prev.price = price;
-    } else {
-      state.positions[id] = {
-        id,
-        symbol: state.selected.symbol,
-        name: state.selected.name,
-        qty,
-        avg: price,
-        price,
-      };
-    }
-    state.cash -= usd;
-    save();
-    renderPortfolio();
-  }
-
-  function sell() {
-    if (!state.selected) return alert("Сначала выберите актив");
-    const id = state.selected.id;
-    const pos = state.positions[id];
-    if (!pos) return alert("Нет позиции по этому активу");
-    const usd = Number($("trade-amount").value);
-    if (!usd || usd <= 0) return alert("Укажите сумму в USD");
-    const price = state.selected.price || pos.price;
-    let qty = usd / price;
-    if (qty > pos.qty) qty = pos.qty;
-    const proceeds = qty * price;
-    pos.qty -= qty;
-    state.cash += proceeds;
-    if (pos.qty < 1e-12) delete state.positions[id];
-    save();
-    renderPortfolio();
-  }
-
-  function resetDemo() {
-    if (!confirm("Сбросить demo-счёт до $100 и закрыть все позиции?")) return;
-    state.cash = START_CASH;
-    state.positions = {};
-    save();
-    renderPortfolio();
-  }
-
-  function bindTabs() {
-    document.querySelectorAll(".tab").forEach((tab) => {
-      tab.addEventListener("click", () => {
-        document.querySelectorAll(".tab").forEach((t) => t.classList.remove("active"));
-        tab.classList.add("active");
-        state.tab = tab.getAttribute("data-tab");
-        renderRadar();
-        const list = currentList();
-        if (list[0]) selectAsset(list[0]);
-      });
-    });
-  }
-
-  function onResize() {
-    const el = $("chart-box");
-    if (state.chart && el) state.chart.applyOptions({ width: el.clientWidth });
-  }
-
-  async function refresh() {
-    equityMark();
-    await fetchCrypto();
-    renderRadar();
-    if (!state.selected) {
-      const list = currentList();
-      if (list[0]) selectAsset(list[0]);
-    } else {
-      const updated =
-        currentList().find((x) => x.id === state.selected.id) ||
-        state.crypto.find((x) => x.id === state.selected.id);
-      if (updated) {
-        state.selected = updated;
-        const price = $("chart-price");
-        if (price)
-          price.textContent = `$${fmt(updated.price, updated.price < 1 ? 6 : 2)} · ${updated.change24 >= 0 ? "+" : ""}${fmt(updated.change24)}%`;
-      }
-    }
-    renderPortfolio();
-  }
-
-  function init() {
-    load();
-    bindTabs();
-    const buyBtn = $("btn-buy");
-    const sellBtn = $("btn-sell");
-    const resetBtn = $("btn-reset");
-    if (buyBtn) buyBtn.addEventListener("click", buy);
-    if (sellBtn) sellBtn.addEventListener("click", sell);
-    if (resetBtn) resetBtn.addEventListener("click", resetDemo);
-    window.addEventListener("resize", onResize);
-    tickClock();
-    setInterval(tickClock, 1000);
-    equityMark();
-    renderPortfolio();
-    refresh();
-    setInterval(refresh, 60_000);
-  }
-
-  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init);
-  else init();
+"use strict";
+const $ = id => document.getElementById(id);
+const state = { assets: [], allAssets: [], news: [], filter: "all", search: "", showAll: false, selected: null, cash: 100, positions: {}, sourceHealth: {dex:false,gecko:false,news:false}, lang:"ru" };
+const STORE = "catalyst_radar_paper_v2";
+const SOURCES = {
+  dexProfiles: "https://api.dexscreener.com/token-profiles/latest/v1",
+  dexBoosts: "https://api.dexscreener.com/token-boosts/latest/v1",
+  gecko: n => "https://api.geckoterminal.com/api/v2/networks/"+n+"/new_pools?page=1",
+  news: q => "https://api.gdeltproject.org/api/v2/doc/doc?query="+encodeURIComponent(q)+"&mode=ArtList&format=json&maxrecords=12&sort=DateDesc"
+};
+const networks = ["solana","base","eth","bsc","arbitrum"];
+const $safe = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+function fmt(n, d=2) { const x=Number(n); if(!Number.isFinite(x)) return "—"; return x.toLocaleString("en-US",{maximumFractionDigits:d,minimumFractionDigits:d}); }
+function money(n,d=2){const x=Number(n);if(!Number.isFinite(x))return "—";return (x<0?"-$":"$")+fmt(Math.abs(x),d);}
+function short(n){n=Number(n);if(!Number.isFinite(n))return "—";if(n>=1e9)return "$"+fmt(n/1e9,1)+"B";if(n>=1e6)return "$"+fmt(n/1e6,1)+"M";if(n>=1e3)return "$"+fmt(n/1e3,1)+"K";return "$"+fmt(n,0);}
+function ago(date){if(!date)return "time unavailable";const sec=Math.max(0,(Date.now()-new Date(date).getTime())/1000);if(!Number.isFinite(sec))return "time unavailable";if(sec<60)return Math.floor(sec)+"s ago";if(sec<3600)return Math.floor(sec/60)+"m ago";if(sec<86400)return Math.floor(sec/3600)+"h ago";return Math.floor(sec/86400)+"d ago";}
+function toast(msg){const el=$("toast");if(!el)return;el.textContent=msg;el.classList.add("show");clearTimeout(toast.t);toast.t=setTimeout(()=>el.classList.remove("show"),3200);}
+function setHealth(key, ok, label){state.sourceHealth[key]=ok;const status=$("health-"+key),dot=$("dot-"+key),row=$("row-"+key);if(status)status.textContent=label || (ok?"LIVE":"UNAVAILABLE");if(dot)dot.className="feed-dot"+(ok?"":" bad");if(row){row.className="source-health"+(ok?"":" pending");row.innerHTML="<i></i> "+(ok?"Live / fetched":"Unavailable");}updateSourceCount();}
+function updateSourceCount(){const n=Object.values(state.sourceHealth).filter(Boolean).length;const el=$("source-live-count");if(el)el.textContent=n+" live connector"+(n===1?"":"s");}
+function parseNum(v){if(v===null||v===undefined||v==="")return null;const n=Number(v);return Number.isFinite(n)?n:null;}
+function normalizeGecko(item, network){
+ const a=item.attributes||{}, rel=item.relationships||{}, tokenRel=rel.base_token&&rel.base_token.data?rel.base_token.data.id:"";
+ const tokenAddress=tokenRel.includes("_")?tokenRel.split("_").slice(1).join("_"):"";
+ const price=parseNum(a.base_token_price_usd), ch1=parseNum(a.price_change_percentage&&a.price_change_percentage.h1), ch24=parseNum(a.price_change_percentage&&a.price_change_percentage.h24);
+ const liq=parseNum(a.reserve_in_usd), vol=parseNum(a.volume_usd&&a.volume_usd.h24), fdv=parseNum(a.fdv_usd)||parseNum(a.market_cap_usd);
+ const tx=a.transactions&&a.transactions.h24||{}, buys=Number(tx.buys)||0, sells=Number(tx.sells)||0;
+ const age=a.pool_created_at?Math.max(0,(Date.now()-new Date(a.pool_created_at).getTime())/3600000):null;
+ const symbol=(a.name||"New pool").split(" / ")[0].slice(0,30);
+ return {id:network+":"+tokenAddress+":"+item.id, address:tokenAddress, chain:network, name:symbol, symbol:symbol.split(" ")[0].toUpperCase().slice(0,12), price, change1h:ch1, change24:ch24, liquidity:liq, volume:vol, fdv, buys, sells, age, createdAt:a.pool_created_at, url:"https://www.geckoterminal.com/"+network+"/pools/"+item.id, image:null, kind:"new", boosted:false, source:"GeckoTerminal", flags:[], score:0};
+}
+function scoreAsset(a){
+ const liq=Number(a.liquidity)||0, vol=Number(a.volume)||0, ch=Math.abs(Number(a.change24)||0), age=Number(a.age);
+ let score=0;
+ if(liq>=100000)score+=15;else if(liq>=25000)score+=12;else if(liq>=5000)score+=8;else if(liq>=1000)score+=4;
+ if(vol>=500000)score+=22;else if(vol>=100000)score+=18;else if(vol>=25000)score+=13;else if(vol>=5000)score+=7;
+ score+=Math.min(20,ch*1.7);
+ if(a.boosted)score+=8;
+ if(Number.isFinite(age)){if(age<24)score+=12;else if(age<72)score+=7;else if(age<168)score+=3;}
+ const total=Number(a.buys||0)+Number(a.sells||0);if(total>0){const imbalance=Math.abs(Number(a.buys||0)-Number(a.sells||0))/total;score+=Math.round(imbalance*8);}
+ if(liq<1000)score-=18;if(liq>0&&vol/liq>25)score-=12;
+ return Math.max(0,Math.min(99,Math.round(score)));
+}
+function flags(a){
+ const out=[];if((a.liquidity||0)<5000)out.push("THIN LIQ");if((a.liquidity||0)>0&&(a.volume||0)/(a.liquidity||1)>15)out.push("VOL/LIQ");if(Math.abs(a.change24||0)>100)out.push("EXTREME MOVE");if(a.boosted)out.push("PROMOTED");if(a.age!==null&&a.age<24)out.push("VERY NEW");if(!a.liquidity)out.push("LIQ N/A");return out.slice(0,2);
+}
+async function fetchJson(url, timeout=9000){
+ const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),timeout);
+ try{const res=await fetch(url,{signal:controller.signal,cache:"no-store"});if(!res.ok)throw new Error("HTTP "+res.status);return await res.json();}finally{clearTimeout(timer);}
+}
+async function fetchGecko(){
+ const results=await Promise.allSettled(networks.map(async network=>{const data=await fetchJson(SOURCES.gecko(network));return (data.data||[]).map(x=>normalizeGecko(x,network));}));
+ const out=[];results.forEach((r,i)=>{if(r.status==="fulfilled")out.push(...r.value);});
+ if(!out.length)throw new Error("No new-pool responses");
+ return out;
+}
+async function fetchDex(){
+ const [profiles,boosts]=await Promise.all([fetchJson(SOURCES.dexProfiles),fetchJson(SOURCES.dexBoosts)]);
+ const boostSet=new Set((Array.isArray(boosts)?boosts:[]).map(x=>(x.chainId+":"+x.tokenAddress).toLowerCase()));
+ const rows=(Array.isArray(profiles)?profiles:[]).slice(0,80).map(p=>({id:(p.chainId||"unknown")+":"+(p.tokenAddress||""),address:p.tokenAddress||"",chain:p.chainId||"unknown",name:p.description||p.tokenAddress||"Token profile",symbol:"TOKEN",price:null,change1h:null,change24:null,liquidity:null,volume:null,fdv:null,age:null,createdAt:null,url:p.url||("https://dexscreener.com/"+p.chainId+"/"+p.tokenAddress),image:p.icon||null,kind:"profile",boosted:boostSet.has(((p.chainId||"")+" :"+(p.tokenAddress||"")).toLowerCase())||boostSet.has(((p.chainId||"")+":"+(p.tokenAddress||"")).toLowerCase()),source:"DEX Screener",flags:[],score:0}));
+ return {rows,boosts:Array.isArray(boosts)?boosts:[]};
+}
+function mergeAssets(gecko,dex){
+ const map=new Map();
+ gecko.forEach(a=>{const key=(a.chain+":"+a.address).toLowerCase();map.set(key,a);});
+ dex.rows.forEach(d=>{
+   const key=(d.chain+":"+d.address).toLowerCase(),existing=map.get(key);
+   if(existing){existing.image=d.image||existing.image;existing.boosted=existing.boosted||d.boosted;existing.dexUrl=d.url;existing.profileName=d.name;}
+   else map.set(key,d);
+ });
+ const boosts=dex.boosts||[];
+ boosts.forEach(b=>{const key=((b.chainId||"")+":"+(b.tokenAddress||"")).toLowerCase();const item=map.get(key);if(item){item.boosted=true;item.boostAmount=b.totalAmount||b.amount||null;}else map.set(key,{id:key,address:b.tokenAddress,chain:b.chainId||"unknown",name:"Boosted token",symbol:"TOKEN",price:null,change1h:null,change24:null,liquidity:null,volume:null,fdv:null,age:null,url:"https://dexscreener.com/"+b.chainId+"/"+b.tokenAddress,image:null,kind:"boost",boosted:true,source:"DEX Screener",flags:["PROMOTED"],score:8});});
+ const arr=[...map.values()];
+ arr.forEach(a=>{a.flags=flags(a);a.score=scoreAsset(a);});
+ return arr.sort((a,b)=>b.score-a.score);
+}
+function renderAssets(){
+ const body=$("asset-rows");if(!body)return;
+ let list=state.allAssets.filter(a=>{
+  if(state.filter==="new"&&a.kind!=="new")return false;
+  if(state.filter==="meme"&&!/meme|doge|shib|pepe|bonk|wif|cat|inu/i.test((a.name||"")+" "+(a.symbol||"")))return false;
+  if(state.filter==="boost"&&!a.boosted)return false;
+  if(state.filter==="highrisk"&&!a.flags.some(x=>["THIN LIQ","VOL/LIQ","EXTREME MOVE","VERY NEW"].includes(x)))return false;
+  if(state.search&&!((a.name+" "+a.symbol+" "+a.chain+" "+a.address).toLowerCase().includes(state.search)))return false;
+  return true;
+ });
+ state.assets=list;
+ $("candidate-count").textContent=list.length+" candidates";
+ const show=state.showAll?list:list.slice(0,12);
+ if(!show.length){body.innerHTML='<tr><td colspan="8" class="empty-cell">No matching assets. If feeds are blocked, try refresh later.</td></tr>';return;}
+ body.innerHTML=show.map(a=>{
+  const price=a.price==null?"—":money(a.price,a.price<0.01?8:a.price<1?5:3);
+  const ch1=a.change1h==null?"—":(a.change1h>=0?"+":"")+fmt(a.change1h,1)+"%";
+  const ch24=a.change24==null?"—":(a.change24>=0?"+":"")+fmt(a.change24,1)+"%";
+  const flagsText=a.flags.length?a.flags.slice(0,2).join(" · "):"CHECK DATA";
+  const avatar=a.image?'<img src="'+$safe(a.image)+'" alt="" loading="lazy" onerror="this.style.display=\'none\'">':$safe((a.symbol||a.name||"?").slice(0,2));
+  return '<tr><td><div class="asset-cell"><span class="token-avatar">'+avatar+'</span><span class="asset-meta"><b>'+$safe(a.symbol==="TOKEN"?(a.profileName||a.name).slice(0,24):a.symbol)+'</b><small>'+$safe(a.chain.toUpperCase())+' · '+$safe(a.source)+'</small></span></div></td><td class="number">'+price+'</td><td class="number"><span class="'+(a.change1h>=0?"pos":a.change1h<0?"neg":"dim")+'">'+ch1+'</span><br><span class="'+(a.change24>=0?"pos":a.change24<0?"neg":"dim")+'">'+ch24+'</span></td><td class="number">'+short(a.liquidity)+'</td><td class="number">'+short(a.volume)+'</td><td><div class="score-cell"><span class="score-number">'+a.score+'</span><span class="score-meter"><span style="width:'+a.score+'%"></span></span></div></td><td><span class="'+(a.flags.some(x=>["THIN LIQ","VOL/LIQ","EXTREME MOVE"].includes(x))?"risk-tag":"mini-tag")+'">'+$safe(flagsText)+'</span></td><td><button class="row-select '+(state.selected&&state.selected.id===a.id?"selected":"")+'" data-pick="'+$safe(a.id)+'">Select</button></td></tr>';
+ }).join("");
+ body.querySelectorAll("[data-pick]").forEach(btn=>btn.addEventListener("click",()=>selectAsset(state.assets.find(a=>a.id===btn.dataset.pick))));
+ $("asset-footnote").textContent="Live endpoints: GeckoTerminal new pools + DEX Screener profiles/boosts. Score = discovery heuristic, not probability of profit.";
+ const tokens=state.allAssets.length;const pools=state.allAssets.filter(a=>a.kind==="new").length;
+ $("metric-tokens").textContent=tokens||"—";$("metric-pools").textContent=pools||"—";
+}
+function selectAsset(a){state.selected=a;renderAssets();renderPortfolio();toast((a.symbol||a.name)+" selected. "+(a.price==null?"No live quote available; trading disabled.":"Live quote loaded from "+a.source+"."));$("paper-buy").disabled=a.price==null;$("paper-sell").disabled=a.price==null;}
+async function loadAssets(){
+ $("scan-state").textContent="Scanning public endpoints";$("scan-progress").style.width="22%";$("scan-substate").textContent="Reading DEX profiles, boosts and new pools";
+ const [geckoRes,dexRes]=await Promise.allSettled([fetchGecko(),fetchDex()]);
+ const gecko=geckoRes.status==="fulfilled"?geckoRes.value:[];const dex=dexRes.status==="fulfilled"?dexRes.value:{rows:[],boosts:[]};
+ setHealth("gecko",gecko.length>0,gecko.length?"LIVE · "+gecko.length+" pools":"UNAVAILABLE");
+ setHealth("dex",dex.rows.length>0||dex.boosts.length>0,(dex.rows.length||dex.boosts.length)?"LIVE · DEX data":"UNAVAILABLE");
+ const merged=mergeAssets(gecko,dex);
+ if(merged.length){state.allAssets=merged;renderAssets();if(!state.selected){const first=merged.find(a=>a.price!=null);if(first)selectAsset(first);}else{const newer=merged.find(a=>a.id===state.selected.id);if(newer)state.selected=newer;}renderPortfolio();}
+ $("scan-progress").style.width="70%";
+ $("scan-state").textContent=merged.length?"Discovery scan complete":"Partial feed failure";
+ $("scan-substate").textContent=merged.length+" unique candidates assembled from public DEX endpoints";
+ $("scan-updated").textContent="Last scan: "+new Date().toISOString().slice(11,19)+" UTC";
+ $("last-updated").textContent="Updated "+new Date().toLocaleTimeString();
+ $("scan-progress").style.width="100%";
+}
+function classifyNews(item){
+ const text=((item.title||"")+" "+(item.domain||"")).toLowerCase();
+ const official=/sec\.gov|fda\.gov|nasdaq\.com|nyse\.com|binance\.com|coinbase\.com|kraken\.com/.test(text);
+ const rumor=/rumou?r|leak|unconfirmed|alleged|insider|listing|list on|will list|reportedly/.test(text);
+ return {label:official?"PRIMARY SOURCE":rumor?"VERIFY CLAIM":"NEWS DISCOVERY",cls:official?"primary":""};
+}
+async function loadNews(){
+ $("news-list").innerHTML='<div class="empty-cell"><span class="loader"></span> Fetching public headlines…</div>';
+ const q='(cryptocurrency OR crypto OR token OR bitcoin OR biotech OR IPO OR "small cap") (listing OR launch OR rumor OR leak OR filing OR approval OR contract OR partnership)';
+ try{
+  const data=await fetchJson(SOURCES.news(q),11000),items=Array.isArray(data.articles)?data.articles:[];
+  state.news=items.filter(x=>x.title&&x.url).slice(0,12);
+  setHealth("news",state.news.length>0,state.news.length?"LIVE · "+state.news.length+" headlines":"NO RESULTS");
+  renderNews();
+ }catch(e){
+  setHealth("news",false,"UNAVAILABLE");
+  $("news-list").innerHTML='<div class="empty-cell">GDELT is unavailable from this browser right now. Use direct research links: <a href="https://www.google.com/search?q=crypto+token+listing+rumor" target="_blank" rel="noopener" style="color:var(--lav)">crypto listing search ↗</a> · <a href="https://www.google.com/search?q=small+cap+stock+FDA+filing+news" target="_blank" rel="noopener" style="color:var(--lav)">small-cap catalyst search ↗</a>. No synthetic headlines are shown.</div>';
+  $("news-count").textContent="0 stories";
+ }
+}
+function renderNews(){
+ const el=$("news-list");if(!state.news.length){el.innerHTML='<div class="empty-cell">No current headlines returned by the public index.</div>';return;}
+ el.innerHTML=state.news.map(item=>{
+  const c=classifyNews(item),date=item.seendate?new Date(item.seendate):null;
+  return '<article class="news-item"><div><div class="news-meta"><span class="news-label '+c.cls+'">'+c.label+'</span><span>'+$safe(item.domain||"Publisher unknown")+'</span><span>·</span><span>'+(date&&!isNaN(date)?ago(date.toISOString()):"time not supplied")+'</span></div><h3><a href="'+$safe(item.url)+'" target="_blank" rel="noopener">'+$safe(item.title)+'</a></h3><div class="news-meta"><span>GDELT public news index</span><span>·</span><span>Verify original source before acting</span></div></div><a class="news-open" href="'+$safe(item.url)+'" target="_blank" rel="noopener" aria-label="Open source">↗</a></article>';
+ }).join("");
+ $("news-count").textContent=state.news.length+" stories";$("metric-news").textContent=state.news.length;
+}
+function loadPaper(){
+ try{const data=JSON.parse(localStorage.getItem(STORE)||"{}");if(Number.isFinite(data.cash))state.cash=data.cash;if(data.positions&&typeof data.positions==="object")state.positions=data.positions;}catch(e){}
+}
+function savePaper(){try{localStorage.setItem(STORE,JSON.stringify({cash:state.cash,positions:state.positions}));}catch(e){}}
+function renderPortfolio(){
+ let equity=0,pnl=0;Object.values(state.positions).forEach(p=>{const a=state.allAssets.find(x=>x.id===p.id);if(a&&a.price!=null)p.price=a.price;const val=(p.price||0)*p.qty;equity+=val;pnl+=val-p.qty*p.avg;});
+ $("paper-cash").textContent=money(state.cash);$("paper-total").textContent=money(state.cash+equity);$("paper-pnl").textContent=(pnl>=0?"+":"")+money(pnl);$("paper-pnl").className=pnl>=0?"pos":"neg";
+ const positions=Object.values(state.positions);$("position-count").textContent=positions.length;
+ if(!positions.length){$("positions-list").className="positions-empty";$("positions-list").textContent="Select a token from the discovery radar to begin.";return;}
+ $("positions-list").className="";
+ $("positions-list").innerHTML=positions.map(p=>{const val=(p.price||0)*p.qty,pl=val-p.qty*p.avg;return '<div class="position-row"><div><b>'+$safe(p.symbol||p.name)+'</b><small>'+fmt(p.qty,6)+' units · avg '+money(p.avg,6)+'</small></div><div class="position-value">'+money(val)+'<br><span class="'+(pl>=0?"pos":"neg")+'">'+(pl>=0?"+":"")+money(pl)+'</span></div></div>';}).join("");
+}
+function trade(side){
+ const a=state.selected;if(!a)return toast("Select an asset first.");
+ if(a.price==null||!Number.isFinite(Number(a.price)))return toast("No verified live price for this asset. Trade disabled.");
+ const usd=Number($("paper-amount").value);if(!Number.isFinite(usd)||usd<=0)return toast("Enter a positive USD amount.");
+ if(side==="buy"){
+  if(usd>state.cash)return toast("Not enough virtual cash.");
+  const qty=usd/a.price,p=state.positions[a.id];
+  if(p){p.avg=(p.avg*p.qty+a.price*qty)/(p.qty+qty);p.qty+=qty;p.price=a.price;}
+  else state.positions[a.id]={id:a.id,symbol:a.symbol,name:a.name,qty,avg:a.price,price:a.price};
+  state.cash-=usd;
+ }else{
+  const p=state.positions[a.id];if(!p)return toast("No open position for this asset.");
+  const qty=Math.min(p.qty,usd/a.price),proceeds=qty*a.price;state.cash+=proceeds;p.qty-=qty;p.price=a.price;if(p.qty<1e-10)delete state.positions[a.id];
+ }
+ savePaper();renderPortfolio();toast(side==="buy"?"Virtual buy recorded.":"Virtual sell recorded.");
+}
+function exportCsv(){
+ const rows=[["symbol","name","chain","price_usd","change_1h_pct","change_24h_pct","liquidity_usd","volume_24h_usd","fdv_usd","discovery_score","risk_flags","source","url"],...state.assets.map(a=>[a.symbol,a.name,a.chain,a.price,a.change1h,a.change24,a.liquidity,a.volume,a.fdv,a.score,a.flags.join("|"),a.source,a.url])];
+ const csv=rows.map(r=>r.map(v=>'"'+String(v??"").replace(/"/g,'""')+'"').join(",")).join("\n");
+ const blob=new Blob([csv],{type:"text/csv;charset=utf-8;"}),url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download="catalyst-radar-discovery.csv";a.click();URL.revokeObjectURL(url);
+}
+function bind(){
+ $("asset-filters").querySelectorAll("[data-filter]").forEach(btn=>btn.addEventListener("click",()=>{$("asset-filters").querySelectorAll(".filter").forEach(x=>x.classList.remove("active"));btn.classList.add("active");state.filter=btn.dataset.filter;renderAssets();}));
+ $("asset-search").addEventListener("input",e=>{state.search=e.target.value.toLowerCase().trim();renderAssets();});
+ $("show-more").addEventListener("click",()=>{state.showAll=!state.showAll;$("show-more").textContent=state.showAll?"Show less ↑":"Show more ↓";renderAssets();});
+ $("refresh-btn").addEventListener("click",refreshAll);$("news-refresh").addEventListener("click",loadNews);$("export-btn").addEventListener("click",exportCsv);
+ $("paper-buy").addEventListener("click",()=>trade("buy"));$("paper-sell").addEventListener("click",()=>trade("sell"));
+ $("paper-reset").addEventListener("click",()=>{if(confirm("Reset the virtual account to $100 and close all positions?")){state.cash=100;state.positions={};savePaper();renderPortfolio();toast("Virtual account reset.");}});
+ $("lang-btn").addEventListener("click",()=>toast("English UI labels are being prepared; data and source labels are shown as returned by providers."));
+}
+async function refreshAll(){await Promise.allSettled([loadAssets(),loadNews()]);}
+function tick(){const now=new Date();$("utc-clock").textContent=now.toISOString().slice(11,19)+" UTC";}
+function init(){loadPaper();bind();tick();setInterval(tick,1000);refreshAll();setInterval(loadAssets,90000);setInterval(loadNews,300000);window.addEventListener("online",()=>refreshAll());}
+if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",init);else init();
 })();

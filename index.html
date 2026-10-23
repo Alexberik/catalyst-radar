@@ -40,6 +40,28 @@
  <div class="feed-chip"><span class="feed-dot warn"></span><span>LISTING / SOCIAL</span><b>LINKED SOURCES</b></div>
  <div class="strip-time" id="last-updated">Updated —</div>
 </section>
+<section id="overview" class="shell section overview-section">
+ <div class="section-heading"><div><div class="eyebrow">00 / MARKET PULSE</div><h2>Обзор рынка и карта риска</h2><p>Визуальная сводка строится только по активам, которые реально вернули подключённые публичные источники. Если данных нет — график это покажет.</p></div><span class="overview-stamp"><i></i> DATA-DRIVEN VIEW</span></div>
+ <div class="overview-kpis">
+  <article class="kpi-card"><div class="kpi-label"><span class="kpi-mark violet"></span> Кандидаты в радаре</div><b id="ov-candidates">—</b><div class="kpi-foot"><span id="ov-candidate-note">Ожидание потока</span><span class="kpi-mini">ASSETS</span></div></article>
+  <article class="kpi-card"><div class="kpi-label"><span class="kpi-mark green"></span> Ликвидность в выборке</div><b id="ov-liquidity">—</b><div class="kpi-foot"><span>Сумма известных пулов</span><span class="kpi-mini">USD</span></div></article>
+  <article class="kpi-card"><div class="kpi-label"><span class="kpi-mark amber"></span> Повышенный риск</div><b id="ov-highrisk">—</b><div class="kpi-foot"><span id="ov-risk-note">Тонкая ликвидность / экстремум</span><span class="risk-pill amber">CAUTION</span></div></article>
+  <article class="kpi-card"><div class="kpi-label"><span class="kpi-mark red"></span> Промо / буст</div><b id="ov-promoted">—</b><div class="kpi-foot"><span>Не считать органическим спросом</span><span class="risk-pill red">CHECK</span></div></article>
+ </div>
+ <div class="visual-grid visual-grid-top">
+  <article class="visual-card chart-card wide-chart"><div class="visual-head"><div><span class="chart-index">01</span><b>Импульс цены · 24 часа</b><small>Топ активов по абсолютному движению; зелёный рост, красное падение</small></div><span class="chart-unit">% / 24H</span></div><div id="momentum-chart" class="chart-stage"><div class="chart-empty">Ожидаем рыночные данные…</div></div><div class="chart-legend"><span><i class="legend-dot green"></i> Рост</span><span><i class="legend-dot red"></i> Падение</span><span><i class="legend-dot gray"></i> Цена не предоставлена источником</span></div></article>
+  <article class="visual-card"><div class="visual-head"><div><span class="chart-index">02</span><b>Распределение риска</b><small>По флагам в текущей выборке</small></div><span class="chart-unit">FLAGS</span></div><div id="risk-chart" class="risk-chart-stage"><div class="chart-empty">Ожидаем данные…</div></div><div class="risk-scale"><span><i class="legend-dot green"></i> Низкий набор флагов</span><span><i class="legend-dot amber"></i> Требует проверки</span><span><i class="legend-dot red"></i> Повышенный риск</span></div></article>
+ </div>
+ <div class="visual-grid visual-grid-bottom">
+  <article class="visual-card"><div class="visual-head"><div><span class="chart-index">03</span><b>Ликвидность vs объём</b><small>Пузырьки — отдельные пулы, размер условный</small></div><span class="chart-unit">USD</span></div><div id="liquidity-chart" class="chart-stage scatter-stage"><div class="chart-empty">Ожидаем данные…</div></div><div class="chart-footnote">Высокий объём при низкой ликвидности может указывать на волатильность или манипуляции. Это не сигнал покупки.</div></article>
+  <article class="visual-card signal-flow-card"><div class="visual-head"><div><span class="chart-index">04</span><b>Путь сигнала</b><small>От обнаружения до решения</small></div><span class="chart-unit">PIPELINE</span></div><div class="signal-flow">
+   <div class="flow-node flow-source"><span>01</span><div><b>Источники</b><small>DEX · новости · filings</small></div><i>IN</i></div><div class="flow-link"><span></span><small>нормализация</small></div>
+   <div class="flow-node flow-check"><span>02</span><div><b>Проверка</b><small>ликвидность · контракт · первоисточник</small></div><i>CHECK</i></div><div class="flow-link"><span></span><small>оценка риска</small></div>
+   <div class="flow-split"><div class="flow-node flow-pass"><span>03A</span><div><b>Наблюдать</b><small>данные достаточно полны</small></div></div><div class="flow-node flow-stop"><span>03B</span><div><b>Стоп / проверка</b><small>красные флаги или мало данных</small></div></div></div>
+  </div></article>
+ </div>
+ <div class="risk-key"><div><span class="risk-swatch green"></span><b>Зелёный</b><small>Нет явных красных флагов в доступных данных — не гарантия безопасности.</small></div><div><span class="risk-swatch amber"></span><b>Жёлтый</b><small>Недостаточно данных, сильное движение или нужна дополнительная проверка.</small></div><div><span class="risk-swatch red"></span><b>Красный</b><small>Тонкая ликвидность, экстремальная волатильность или высокий объём к ликвидности.</small></div></div>
+</section>
 <section id="discovery" class="shell section">
  <div class="section-heading"><div><div class="eyebrow">01 / EARLY DISCOVERY</div><h2>Радар новых активов</h2><p>Новые пулы, активность DEX, ликвидность и импульс. Сортировка помогает находить кандидатов, но не означает прогноз доходности.</p></div><div class="heading-tools"><span class="counter" id="candidate-count">0 candidates</span><button class="btn btn-small btn-outline" id="export-btn">Export CSV ↗</button></div></div>
  <div class="filterbar">

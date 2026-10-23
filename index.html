@@ -40,6 +40,22 @@
  <div class="feed-chip"><span class="feed-dot warn"></span><span>LISTING / SOCIAL</span><b>LINKED SOURCES</b></div>
  <div class="strip-time" id="last-updated">Updated —</div>
 </section>
+
+<section id="demo-collector" class="shell demo-collector-section">
+ <div class="demo-collector-head"><div><div class="eyebrow">DEMO MODEL / PUBLIC GITHUB SNAPSHOTS</div><h2>История сбора данных</h2><p>Демо-сборщик сохраняет rolling-историю до 24 часов в репозитории. Обновление планируется каждые 5 минут; GitHub Actions может задерживать запуски.</p></div><span class="demo-mode-pill">DEMO · NO PRIVATE KEYS</span></div>
+ <div class="demo-window-tabs" role="group" aria-label="Период сравнения">
+  <button type="button" data-demo-window="5m" class="active">5 минут</button><button type="button" data-demo-window="30m">30 минут</button><button type="button" data-demo-window="1h">1 час</button><button type="button" data-demo-window="24h">24 часа</button>
+ </div>
+ <div class="demo-stats-grid">
+  <article><span>Кандидаты в последнем снимке</span><b id="demo-crypto-count">—</b><small>Новые пулы / токены</small></article>
+  <article><span>Новые за выбранный период</span><b id="demo-new-count">—</b><small>Сравнение ID между снимками</small></article>
+  <article><span>Акции с доступной ценой</span><b id="demo-equity-count">—</b><small>Публичный demo endpoint</small></article>
+  <article><span>Заголовки новостей</span><b id="demo-news-count">—</b><small>GDELT · требует проверки</small></article>
+ </div>
+ <div class="demo-collector-foot"><span id="demo-snapshot-time">Collector installed · waiting for first scheduled snapshot</span><span id="demo-window-note">History is accumulating; comparisons become meaningful after multiple successful runs.</span></div>
+ <div class="demo-source-links"><a href="data/demo-market.json" target="_blank" rel="noopener">Открыть сохранённые данные ↗</a><a href="https://github.com/Alexberik/catalyst-radar/actions/workflows/demo-market-data.yml" target="_blank" rel="noopener">История запусков сборщика ↗</a></div>
+</section>
+
 <section id="overview" class="shell section overview-section">
  <div class="section-heading"><div><div class="eyebrow">00 / MARKET PULSE</div><h2>Обзор рынка и карта риска</h2><p>Визуальная сводка строится только по активам, которые реально вернули подключённые публичные источники. Если данных нет — график это покажет.</p></div><span class="overview-stamp"><i></i> DATA-DRIVEN VIEW</span></div>
  <div class="overview-kpis">

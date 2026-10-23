@@ -1,0 +1,17 @@
+{
+  "schema_version": 1,
+  "mode": "DEMO",
+  "generated_at": null,
+  "update_interval_minutes": 5,
+  "retention_hours": 24,
+  "snapshot_count": 0,
+  "sources": {
+    "GeckoTerminal": "public API",
+    "DEX Screener": "public API",
+    "Yahoo Finance": "public chart endpoint",
+    "GDELT": "public news index"
+  },
+  "source_errors": {},
+  "snapshots": [],
+  "disclaimer": "Demo research data, may be delayed or incomplete. Discovery scores are heuristics, not probabilities or investment advice."
+}

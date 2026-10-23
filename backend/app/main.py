@@ -248,6 +248,34 @@ async def gdelt_news(client: httpx.AsyncClient, query: str) -> list[dict[str, An
         })
     return out
 
+
+async def x_news(client: httpx.AsyncClient, query: str) -> list[dict[str, Any]]:
+    token = os.getenv("X_BEARER_TOKEN")
+    if not token:
+        _source_status["x_api"] = {"ok":False,"configured":False,"checked_at":now_iso(),"error":"X_BEARER_TOKEN not configured"}
+        return []
+    params = httpx.QueryParams({"query":query+" -is:retweet","max_results":"10","tweet.fields":"created_at,public_metrics,author_id"})
+    data = await get_json(client, "https://api.x.com/2/tweets/search/recent?"+str(params), "x_api", {"Authorization":"Bearer "+token})
+    return [{"source":"X API","event_type":"social_post","title":x.get("text"),"url":"https://x.com/i/web/status/"+str(x.get("id")),"published_at":x.get("created_at"),"metrics":x.get("public_metrics"),"verification":"unverified_social_post"} for x in data.get("data",[])]
+
+async def reddit_news(client: httpx.AsyncClient, query: str) -> list[dict[str, Any]]:
+    client_id, secret = os.getenv("REDDIT_CLIENT_ID"), os.getenv("REDDIT_CLIENT_SECRET")
+    if not client_id or not secret:
+        _source_status["reddit_api"] = {"ok":False,"configured":False,"checked_at":now_iso(),"error":"Reddit OAuth credentials not configured"}
+        return []
+    try:
+        token_response = await client.post("https://www.reddit.com/api/v1/access_token", data={"grant_type":"client_credentials"}, auth=(client_id,secret), headers={"User-Agent":os.getenv("REDDIT_USER_AGENT","CatalystRadar/0.1 by research-user")})
+        token_response.raise_for_status()
+        token = token_response.json().get("access_token")
+        if not token:
+            raise RuntimeError("Reddit OAuth returned no access token")
+        params = httpx.QueryParams({"q":query,"sort":"new","limit":"15","t":"day"})
+        data = await get_json(client, "https://oauth.reddit.com/search.json?"+str(params), "reddit_api", {"Authorization":"Bearer "+token,"User-Agent":os.getenv("REDDIT_USER_AGENT","CatalystRadar/0.1 by research-user")})
+        return [{"source":"Reddit","event_type":"social_post","title":x.get("data",{}).get("title"),"url":"https://www.reddit.com"+x.get("data",{}).get("permalink",""),"published_at":datetime.fromtimestamp(x.get("data",{}).get("created_utc",0),timezone.utc).isoformat() if x.get("data",{}).get("created_utc") else None,"score":x.get("data",{}).get("score"),"subreddit":x.get("data",{}).get("subreddit"),"verification":"unverified_social_post"} for x in data.get("data",{}).get("children",[])]
+    except Exception as exc:
+        _source_status["reddit_api"] = {"ok":False,"configured":True,"checked_at":now_iso(),"error":str(exc)[:180]}
+        return []
+
 async def optional_news(client: httpx.AsyncClient) -> list[dict[str, Any]]:
     key = os.getenv("CRYPTOPANIC_API_KEY")
     if not key:
@@ -293,7 +321,24 @@ async def token_security(chain: str, address: str):
             try:
                 data = await get_json(client, url, "rugcheck")
                 risks = data.get("risks", [])
-                return {"chain":chain_key,"address":address,"source":"RugCheck","checked_at":now_iso(),"status":"available","score_normalised":data.get("score_normalised"),"lp_locked_pct":data.get("lpLockedPct"),"risks":risks,"verification":"third_party_risk_signal_not_guarantee"}
+                enrichment = {}
+                helius_key = os.getenv("HELIUS_API_KEY")
+                if helius_key:
+                    try:
+                        response = await client.post("https://mainnet.helius-rpc.com/?api-key="+helius_key, json={"jsonrpc":"2.0","id":"catalyst-radar","method":"getAsset","params":{"id":address}})
+                        response.raise_for_status()
+                        hdata = response.json().get("result", {})
+                        enrichment["helius"] = {"name":hdata.get("content",{}).get("metadata",{}).get("name"),"symbol":hdata.get("content",{}).get("metadata",{}).get("symbol"),"token_info":hdata.get("token_info"),"interface":hdata.get("interface")}
+                    except Exception as exc:
+                        enrichment["helius"] = {"status":"unavailable","error":str(exc)[:120]}
+                birdeye_key = os.getenv("BIRDEYE_API_KEY")
+                if birdeye_key:
+                    try:
+                        bdata = await get_json(client, "https://public-api.birdeye.so/defi/token_overview?address="+address, "birdeye", {"X-API-KEY":birdeye_key,"x-chain":"solana"})
+                        enrichment["birdeye"] = bdata.get("data", bdata)
+                    except Exception as exc:
+                        enrichment["birdeye"] = {"status":"unavailable","error":str(exc)[:120]}
+                return {"chain":chain_key,"address":address,"source":"RugCheck","checked_at":now_iso(),"status":"available","score_normalised":data.get("score_normalised"),"lp_locked_pct":data.get("lpLockedPct"),"risks":risks,"enrichment":enrichment,"verification":"third_party_risk_signal_not_guarantee"}
             except Exception as exc:
                 return {"chain":chain_key,"address":address,"source":"RugCheck","checked_at":now_iso(),"status":"unavailable","error":str(exc)[:180],"risks":[]}
         chain_id = CHAIN_IDS.get(chain_key)
@@ -457,11 +502,11 @@ async def discovery(limit: int = Query(default=100, ge=1, le=500), refresh: bool
 @app.get(f"{API_PREFIX}/news")
 async def news(query: str = Query(default="cryptocurrency OR bitcoin OR ethereum OR token listing OR defense stocks OR reconstruction", min_length=3, max_length=240), limit: int = Query(default=25, ge=1, le=50)):
     async with httpx.AsyncClient(timeout=TIMEOUT, follow_redirects=True, headers={"Accept":"application/json","User-Agent":"CatalystRadar/0.1 market research"}) as client:
-        tasks = [gdelt_news(client, query), optional_news(client), sec_filings(client)]
+        tasks = [gdelt_news(client, query), optional_news(client), sec_filings(client), x_news(client, query), reddit_news(client, query)]
         results = await asyncio.gather(*tasks, return_exceptions=True)
     events = []
     errors = {}
-    for name, result in zip(["gdelt","cryptopanic","sec_edgar"], results):
+    for name, result in zip(["gdelt","cryptopanic","sec_edgar","x_api","reddit_api"], results):
         if isinstance(result, Exception):
             errors[name] = str(result)[:220]
         else:

@@ -74,7 +74,44 @@ function mergeAssets(gecko,dex){
  arr.forEach(a=>{a.flags=flags(a);a.score=scoreAsset(a);});
  return arr.sort((a,b)=>b.score-a.score);
 }
+
+function renderOverview(){
+ const all=state.allAssets||[],known=all.filter(a=>a.price!=null),liq=all.reduce((n,a)=>n+(Number(a.liquidity)||0),0);
+ const high=all.filter(a=>a.flags.some(x=>["THIN LIQ","VOL/LIQ","EXTREME MOVE"].includes(x))).length;
+ const promoted=all.filter(a=>a.boosted).length;
+ if($("ov-candidates"))$("ov-candidates").textContent=all.length.toLocaleString("en-US");
+ if($("ov-candidate-note"))$("ov-candidate-note").textContent=known.length+" активов с ценой в данных";
+ if($("ov-liquidity"))$("ov-liquidity").textContent=short(liq);
+ if($("ov-highrisk"))$("ov-highrisk").textContent=high.toLocaleString("en-US");
+ if($("ov-risk-note"))$("ov-risk-note").textContent=(all.length?Math.round(high/all.length*100):0)+"% текущей выборки";
+ if($("ov-promoted"))$("ov-promoted").textContent=promoted.toLocaleString("en-US");
+ const mom=$("momentum-chart");
+ if(mom){
+  const rows=all.filter(a=>a.change24!=null&&Number.isFinite(Number(a.change24))).sort((a,b)=>Math.abs(b.change24)-Math.abs(a.change24)).slice(0,8);
+  if(!rows.length)mom.innerHTML='<div class="chart-empty">24h изменения не пришли от источника. Нет подставных значений.</div>';
+  else {const max=Math.max(1,...rows.map(a=>Math.abs(Number(a.change24))));mom.innerHTML='<div class="momentum-list">'+rows.map(a=>{const v=Number(a.change24),w=Math.max(2,Math.abs(v)/max*100),cl=v>=0?"up":"down";return '<div class="momentum-row"><div class="momentum-name"><b>'+ $safe(a.symbol||a.name||"Asset")+'</b><small>'+ $safe(a.chain||"—")+'</small></div><div class="momentum-track"><span class="'+cl+'" style="width:'+w+'%"></span></div><strong class="'+cl+'">'+(v>0?"+":"")+fmt(v,1)+'%</strong></div>';}).join("")+'</div>';}
+ }
+ const risk=$("risk-chart");
+ if(risk){
+  const n=all.length||0,low=all.filter(a=>!a.flags.length&&a.liquidity>=5000&&a.change24!=null).length;
+  const highN=high,caution=Math.max(0,n-low-highN),pct=x=>n?Math.round(x/n*100):0;
+  risk.innerHTML=n?'<div class="risk-total"><b>'+n+'</b><span>активов в выборке</span></div><div class="risk-bar"><span class="risk-seg low" style="width:'+pct(low)+'%"></span><span class="risk-seg caution" style="width:'+pct(caution)+'%"></span><span class="risk-seg high" style="width:'+pct(highN)+'%"></span></div><div class="risk-rows"><div><i class="legend-dot green"></i><span>Меньше флагов</span><b>'+low+' <small>'+pct(low)+'%</small></b></div><div><i class="legend-dot amber"></i><span>Требует проверки</span><b>'+caution+' <small>'+pct(caution)+'%</small></b></div><div><i class="legend-dot red"></i><span>Повышенный риск</span><b>'+highN+' <small>'+pct(highN)+'%</small></b></div></div>':'<div class="chart-empty">Нет активов для оценки риска.</div>';
+ }
+ const scat=$("liquidity-chart");
+ if(scat){
+  const pts=all.filter(a=>Number(a.liquidity)>0&&Number(a.volume)>0).sort((a,b)=>b.volume-a.volume).slice(0,60);
+  if(!pts.length)scat.innerHTML='<div class="chart-empty">Для графика нужны одновременно ликвидность и объём. Пока этих данных нет.</div>';
+  else {
+   const W=540,H=230,L=48,R=14,T=14,B=34,pw=W-L-R,ph=H-T-B,maxL=Math.max(1,...pts.map(a=>Number(a.liquidity))),maxV=Math.max(1,...pts.map(a=>Number(a.volume)));
+   const sx=v=>L+(Math.log10(Math.max(1,v))/Math.log10(maxL))*pw,sy=v=>T+ph-(Math.log10(Math.max(1,v))/Math.log10(maxV))*ph;
+   let grid='';[0.25,0.5,0.75,1].forEach(t=>{const y=T+ph-t*ph,x=L+t*pw;grid+='<line x1="'+L+'" y1="'+y+'" x2="'+(W-R)+'" y2="'+y+'" class="chart-gridline"/><line x1="'+x+'" y1="'+T+'" x2="'+x+'" y2="'+(T+ph)+'" class="chart-gridline"/>';});
+   const circles=pts.map(a=>'<circle cx="'+sx(a.liquidity).toFixed(1)+'" cy="'+sy(a.volume).toFixed(1)+'" r="'+(3+Math.min(5,Math.sqrt(Number(a.volume)/maxV)*5)).toFixed(1)+'" class="'+(a.flags.some(x=>["THIN LIQ","VOL/LIQ","EXTREME MOVE"].includes(x))?"scatter-high":a.flags.length?"scatter-warn":"scatter-low")+'"><title>'+$safe(a.symbol||a.name)+' · liquidity '+short(a.liquidity)+' · 24h volume '+short(a.volume)+'</title></circle>').join("");
+   scat.innerHTML='<svg class="scatter-svg" viewBox="0 0 '+W+' '+H+'" role="img" aria-label="Liquidity versus 24-hour volume scatter plot">'+grid+circles+'<text x="'+L+'" y="'+(H-9)+'" class="chart-axis">LOW LIQUIDITY</text><text x="'+(W-R)+'" y="'+(H-9)+'" text-anchor="end" class="chart-axis">HIGH LIQUIDITY →</text><text x="12" y="'+(T+ph/2)+'" transform="rotate(-90 12 '+(T+ph/2)+')" text-anchor="middle" class="chart-axis">24H VOLUME →</text></svg><div class="scatter-legend"><span><i class="legend-dot green"></i> fewer flags</span><span><i class="legend-dot amber"></i> check</span><span><i class="legend-dot red"></i> risk flags</span></div>';
+  }
+ }
+}
 function renderAssets(){
+ renderOverview();
  const body=$("asset-rows");if(!body)return;
  let list=state.allAssets.filter(a=>{
   if(state.filter==="new"&&a.kind!=="new")return false;

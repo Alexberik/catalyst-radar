@@ -1,0 +1,14 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.env
+.env.*
+!.env.example
+# Local backend data
+backend/data/
+*.sqlite3
+# Editors
+.vscode/
+.idea/

@@ -5,7 +5,7 @@ import json
 import os
 import sqlite3
 import time
-from contextlib import asynccontextmanager
+from contextlib import asynccontextmanager, contextmanager
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
@@ -38,8 +38,20 @@ def db() -> sqlite3.Connection:
     conn.row_factory = sqlite3.Row
     return conn
 
+@contextmanager
+def db_session():
+    conn = db()
+    try:
+        yield conn
+        conn.commit()
+    except Exception:
+        conn.rollback()
+        raise
+    finally:
+        conn.close()
+
 def init_db() -> None:
-    with db() as conn:
+    with db_session() as conn:
         conn.execute("""CREATE TABLE IF NOT EXISTS scans (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             scanned_at TEXT NOT NULL,

@@ -168,26 +168,26 @@ def main():
         prior = {}
     snapshots = prior.get("snapshots", [])
     latest = snapshots[-1] if snapshots else {}
-    def age_minutes(snapshot):
+    def age_minutes(value):
         try:
-            stamp = datetime.fromisoformat(snapshot["timestamp"].replace("Z","+00:00"))
+            stamp = datetime.fromisoformat(value.replace("Z","+00:00"))
             return max(0, (now_dt-stamp).total_seconds()/60)
         except Exception:
             return 10**9
     # Fast-moving DEX/pool data every workflow run (nominally 5 minutes).
     crypto = get_crypto_assets(errors)
-    # Stocks refresh hourly; headlines refresh every 30 minutes. Reuse last
-    # successful sample between refreshes and retain the original observation time.
-    if not latest or age_minutes(latest) >= 60 or not latest.get("equities"):
-        stocks = get_stocks(errors)
-    else:
-        stocks = latest.get("equities", [])
-    if not latest or age_minutes(latest) >= 30 or not latest.get("news"):
-        news = get_news(errors)
-    else:
-        news = latest.get("news", [])
+    last_equity_check = latest.get("equities_collected_at") or latest.get("timestamp")
+    last_news_check = latest.get("news_collected_at") or latest.get("timestamp")
+    refresh_equities = not latest.get("equities") or age_minutes(last_equity_check) >= 60
+    refresh_news = not latest.get("news") or age_minutes(last_news_check) >= 30
+    # Reuse last successful sample between refreshes; retain original collection time.
+    stocks = get_stocks(errors) if refresh_equities else latest.get("equities", [])
+    news = get_news(errors) if refresh_news else latest.get("news", [])
+    equities_collected_at = now if refresh_equities else last_equity_check
+    news_collected_at = now if refresh_news else last_news_check
     snapshots.append({"timestamp":now,"crypto_count":len(crypto),"equity_count":len(stocks),
                       "crypto":crypto[:35],"equities":stocks,"news":news[:12],
+                      "equities_collected_at":equities_collected_at,"news_collected_at":news_collected_at,
                       "cadence_minutes":{"crypto":5,"news":30,"equities":60}})
     # Keep the rolling 24-hour window (288 snapshots at 5-minute cadence).
     cutoff = time.time() - 24*3600

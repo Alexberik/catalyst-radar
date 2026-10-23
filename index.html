@@ -4,7 +4,7 @@
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>CATALYST RADAR — Early Signal Intelligence</title>
 <meta name="description" content="Радар раннего обнаружения: новые токены, мемкоины, листинги, рыночные аномалии и катализаторы малых компаний. Источники и уровень подтверждения видны у каждого сигнала.">
-<meta name="theme-color" content="#17131f">
+<meta name="theme-color" content="#f4f7fb">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
@@ -14,7 +14,7 @@
 <div class="ambient" aria-hidden="true"></div>
 <header class="topbar">
   <a class="brand" href="#top"><span class="brand-symbol"><i></i><i></i><i></i></span><span>CATALYST<span class="brand-light">RADAR</span><small>EARLY SIGNAL INTELLIGENCE</small></span></a>
-  <nav><a href="#overview">Market pulse</a><a href="#discovery">Discovery</a><a href="#listings">Listings</a><a href="#rumors">Rumor desk</a><a href="#equities">Equities</a><a href="#sources">Sources</a><a href="#paper">Paper lab</a></nav>
+  <nav><a href="#overview">Market pulse</a><a href="#discovery">Новые активы</a><a href="#majors">Крупные активы</a><a href="#listings">Listings</a><a href="#rumors">Rumor desk</a><a href="#equities">Equities</a><a href="#sources">Sources</a><a href="#paper">Paper lab</a></nav>
   <div class="top-actions"><span class="live-pill"><span></span> SCANNING</span><button id="refresh-btn" class="icon-button" aria-label="Refresh feeds" title="Refresh feeds">↻</button><button id="lang-btn" class="language">RU / EN</button></div>
 </header>
 <main id="top">
@@ -70,6 +70,20 @@
  </div>
  <div class="table-wrap"><table class="data-table"><thead><tr><th>ASSET / CHAIN</th><th>PRICE</th><th>1H / 24H</th><th>LIQUIDITY</th><th>24H VOLUME</th><th>DISCOVERY</th><th>RISK FLAGS</th><th></th></tr></thead><tbody id="asset-rows"><tr><td colspan="8" class="empty-cell"><span class="loader"></span> Loading on-chain discovery feeds…</td></tr></tbody></table></div>
  <div class="table-foot"><span id="asset-footnote">Source: public DEX endpoints. Waiting for first response.</span><button class="text-button" id="show-more">Show more ↓</button></div>
+</section>
+
+<section id="majors" class="shell section majors-section">
+ <div class="section-heading"><div><div class="eyebrow">01B / CORE MARKET</div><h2>Крупные активы и рыночный ориентир</h2><p>Отдельный экран для BTC, ETH, XRP и других крупных монет, включая стейблкоины. Котировки и свечи запрашиваются у публичного рыночного API; стейблкоины помечены отдельно.</p></div><div class="heading-tools"><span class="market-live"><i></i> PUBLIC MARKET DATA</span><button class="btn btn-small btn-outline" id="majors-refresh">Обновить ↻</button></div></div>
+ <div class="major-ticker-grid" id="major-tickers"><div class="chart-empty">Загружаем котировки крупных активов…</div></div>
+ <div class="major-visual-grid">
+  <article class="visual-card major-candle-card"><div class="visual-head"><div><span class="chart-index">05</span><b>Свечной график BTC / USDT</b><small id="candle-subtitle">Часовые свечи · данные публичного рынка</small></div><div class="chart-controls"><select id="candle-interval" aria-label="Интервал свечей"><option value="1h">1 час</option><option value="4h">4 часа</option><option value="1d">1 день</option></select><span class="chart-unit">OHLCV</span></div></div><div class="candle-legend"><span><i class="legend-dot green"></i> Закрытие выше открытия</span><span><i class="legend-dot red"></i> Закрытие ниже открытия</span><span id="candle-last-price">Последняя цена: —</span></div><div id="candle-chart" class="candle-chart"><div class="chart-empty">Ожидаем свечные данные…</div></div></article>
+  <article class="visual-card"><div class="visual-head"><div><span class="chart-index">06</span><b>Ширина рынка</b><small>Изменение за 24 часа у загруженных активов</small></div><span class="chart-unit">ADV / DEC</span></div><div id="breadth-chart" class="breadth-chart"><div class="chart-empty">Ожидаем котировки…</div></div><div class="chart-footnote">Это обзор динамики выбранной корзины, а не всего крипторынка. Котировки могут отличаться между биржами.</div></article>
+ </div>
+ <div class="major-bottom-grid">
+  <article class="visual-card"><div class="visual-head"><div><span class="chart-index">07</span><b>Объём торгов · 24 часа</b><small>Сравнение выбранных торговых пар</small></div><span class="chart-unit">USDT</span></div><div id="major-volume-chart" class="major-volume-chart"><div class="chart-empty">Ожидаем объёмы…</div></div></article>
+  <article class="visual-card"><div class="visual-head"><div><span class="chart-index">08</span><b>Состав наблюдаемой корзины</b><small>Классификация активов, не доли капитализации</small></div><span class="chart-unit">ASSET MIX</span></div><div id="asset-mix-chart" class="asset-mix-chart"><div class="chart-empty">Ожидаем данные…</div></div></article>
+ </div>
+ <div class="notice-line"><span>ⓘ</span><p><b>Как читать:</b> зелёная свеча означает, что цена закрытия выше цены открытия; красная — ниже. Цвет риска не является инвестиционной рекомендацией. USDT показан как стейблкоин с ориентиром привязки к $1, а не как независимо измеренная котировка USD.</p></div>
 </section>
 <section id="listings" class="shell section">
  <div class="section-heading"><div><div class="eyebrow">02 / LISTING INTELLIGENCE</div><h2>До листинга — а не после</h2><p>Отслеживаем официальные объявления и сигналы подготовки к запуску. Ни один сторонний пост не считается подтверждением листинга.</p></div><span class="section-status"><i></i> SOURCE WATCH</span></div>

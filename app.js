@@ -273,6 +273,28 @@ function classifyNews(item){
  const rumor=/rumou?r|leak|unconfirmed|alleged|insider|listing|list on|will list|reportedly/.test(text);
  return {label:official?"PRIMARY SOURCE":rumor?"VERIFY CLAIM":"NEWS DISCOVERY",cls:official?"primary":""};
 }
+async function loadGeoNews(){
+ const list=$("geo-news-list"),status=$("geo-news-status");if(!list)return;
+ list.innerHTML='<div class="chart-empty"><span class="loader"></span> Ищем свежие геополитические заголовки…</div>';if(status)status.textContent="ЗАПРОС";
+ const q='(Ukraine OR Iran OR Israel OR Netanyahu OR Zelenskyy OR Putin OR Trump OR ceasefire OR sanctions) (defense OR defence OR military OR reconstruction OR infrastructure OR contract OR budget OR missile OR construction OR cement OR steel)';
+ try{
+  const data=await fetchJson(SOURCES.news(q),12000),items=Array.isArray(data.articles)?data.articles:[];
+  const seen=new Set();const rows=items.filter(x=>x.title&&x.url).filter(x=>{const k=x.url;if(seen.has(k))return false;seen.add(k);return true;}).slice(0,10);
+  if(!rows.length)throw new Error("No matching headlines");
+  list.innerHTML=rows.map(item=>{
+   const date=item.seendate?new Date(item.seendate):null;
+   const title=(item.title||"").toLowerCase();
+   const defence=/defen[cs]|military|missile|weapon|munition|air.?defen|budget|contract/.test(title);
+   const rebuild=/reconstruct|infrastructure|construction|cement|steel|rebuild|tender/.test(title);
+   const tag=defence?"DEFENCE / ORDERS":rebuild?"RECONSTRUCTION":"GEOPOLITICS";
+   return '<article class="geo-news-item"><div class="geo-news-meta"><span class="geo-news-tag '+(defence?"defence":rebuild?"build":"")+'">'+tag+'</span><span>'+$safe(item.domain||"Источник не указан")+'</span><span>·</span><span>'+(date&&!isNaN(date)?$safe(date.toLocaleString()):"время не предоставлено")+'</span></div><a href="'+$safe(item.url)+'" target="_blank" rel="noopener">'+$safe(item.title)+' ↗</a><small>Индекс GDELT · проверь первоисточник</small></article>';
+  }).join("");
+  if(status)status.textContent=rows.length+" ЗАГОЛОВКОВ";
+ }catch(e){
+  list.innerHTML='<div class="chart-empty">Публичный новостной индекс сейчас недоступен или не вернул подходящих заголовков. Список акций остаётся доступен; попробуй обновить позже.</div>';
+  if(status)status.textContent="НЕДОСТУПНО";
+ }
+}
 async function loadNews(){
  $("news-list").innerHTML='<div class="empty-cell"><span class="loader"></span> Fetching public headlines…</div>';
  const q='(cryptocurrency OR crypto OR token OR bitcoin OR biotech OR IPO OR "small cap") (listing OR launch OR rumor OR leak OR filing OR approval OR contract OR partnership)';
@@ -332,13 +354,13 @@ function bind(){
  $("asset-filters").querySelectorAll("[data-filter]").forEach(btn=>btn.addEventListener("click",()=>{$("asset-filters").querySelectorAll(".filter").forEach(x=>x.classList.remove("active"));btn.classList.add("active");state.filter=btn.dataset.filter;renderAssets();}));
  $("asset-search").addEventListener("input",e=>{state.search=e.target.value.toLowerCase().trim();renderAssets();});
  $("show-more").addEventListener("click",()=>{state.showAll=!state.showAll;$("show-more").textContent=state.showAll?"Show less ↑":"Show more ↓";renderAssets();});
- $("refresh-btn").addEventListener("click",refreshAll);$("majors-refresh").addEventListener("click",()=>{loadMajors();loadCandles();});$("candle-interval").addEventListener("change",loadCandles);$("news-refresh").addEventListener("click",loadNews);$("export-btn").addEventListener("click",exportCsv);
+ $("refresh-btn").addEventListener("click",refreshAll);if($("geo-refresh"))$("geo-refresh").addEventListener("click",loadGeoNews);$("majors-refresh").addEventListener("click",()=>{loadMajors();loadCandles();});$("candle-interval").addEventListener("change",loadCandles);$("news-refresh").addEventListener("click",loadNews);$("export-btn").addEventListener("click",exportCsv);
  $("paper-buy").addEventListener("click",()=>trade("buy"));$("paper-sell").addEventListener("click",()=>trade("sell"));
  $("paper-reset").addEventListener("click",()=>{if(confirm("Reset the virtual account to $100 and close all positions?")){state.cash=100;state.positions={};savePaper();renderPortfolio();toast("Virtual account reset.");}});
  $("lang-btn").addEventListener("click",()=>toast("English UI labels are being prepared; data and source labels are shown as returned by providers."));
 }
-async function refreshAll(){await Promise.allSettled([loadAssets(),loadNews(),loadMajors(),loadCandles()]);}
+async function refreshAll(){await Promise.allSettled([loadAssets(),loadNews(),loadMajors(),loadCandles(),loadGeoNews()]);}
 function tick(){const now=new Date();$("utc-clock").textContent=now.toISOString().slice(11,19)+" UTC";}
-function init(){loadPaper();bind();tick();setInterval(tick,1000);refreshAll();loadMajors();loadCandles();setInterval(loadMajors,60000);setInterval(loadCandles,60000);setInterval(loadAssets,90000);setInterval(loadNews,300000);window.addEventListener("online",()=>refreshAll());}
+function init(){loadPaper();bind();tick();setInterval(tick,1000);refreshAll();loadMajors();loadCandles();setInterval(loadMajors,60000);setInterval(loadCandles,60000);setInterval(loadAssets,90000);setInterval(loadNews,300000);setInterval(loadGeoNews,300000);window.addEventListener("online",()=>refreshAll());}
 if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",init);else init();
 })();

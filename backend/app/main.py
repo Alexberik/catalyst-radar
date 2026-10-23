@@ -328,6 +328,37 @@ async def sec_filings(client: httpx.AsyncClient) -> list[dict[str, Any]]:
 
 CHAIN_IDS = {"ethereum":"1","eth":"1","bsc":"56","bnb":"56","polygon":"137","arbitrum":"42161","avalanche":"43114","base":"8453","optimism":"10","fantom":"250"}
 
+def persist_scan(assets: list[dict[str, Any]]) -> None:
+    timestamp = now_iso()
+    with db_session() as conn:
+        conn.executemany("""INSERT INTO scans
+            (scanned_at,asset_id,symbol,name,chain,price_usd,change_24h,liquidity_usd,volume_24h_usd,discovery_score,source,payload_json)
+            VALUES (?,?,?,?,?,?,?,?,?,?,?,?)""", [
+            (timestamp, a.get("asset_id"), a.get("symbol"), a.get("name"), a.get("chain"),
+             a.get("price_usd"), a.get("change_24h_pct"), a.get("liquidity_usd"),
+             a.get("volume_24h_usd"), a.get("discovery_score"), a.get("source"),
+             json.dumps(a, ensure_ascii=False)) for a in assets
+        ])
+
+def persist_events(events: list[dict[str, Any]]) -> None:
+    with db_session() as conn:
+        for e in events:
+            conn.execute("""INSERT INTO source_events
+                (observed_at,source,event_type,title,url,published_at,verification,payload_json)
+                VALUES (?,?,?,?,?,?,?,?)""",
+                (now_iso(),e.get("source","unknown"),e.get("event_type","news"),e.get("title"),
+                 e.get("url"),e.get("published_at"),e.get("verification","unverified"),
+                 json.dumps(e,ensure_ascii=False)))
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    init_db()
+    yield
+
+app = FastAPI(title="Catalyst Radar Data API", version=APP_VERSION, description="Multi-source market discovery and event-intelligence API. Discovery scores are heuristics, not probabilities.", lifespan=lifespan)
+origins = [x.strip() for x in os.getenv("CORS_ORIGINS", "https://alexberik.github.io,http://localhost:8000,http://127.0.0.1:8000").split(",") if x.strip()]
+app.add_middleware(CORSMiddleware, allow_origins=origins, allow_credentials=False, allow_methods=["GET"], allow_headers=["*"])
+
 @app.get(f"{API_PREFIX}/security/{{chain}}/{{address}}")
 async def token_security(chain: str, address: str):
     """Return available contract-risk checks. Missing fields mean unknown, not safe."""
@@ -425,36 +456,6 @@ async def equity_quotes(symbols: str = Query(default="AAPL,NVDA,RTX,LMT,CAT,CRH"
         quotes = await asyncio.gather(*(quote(s) for s in requested))
     return {"generated_at":now_iso(),"configured":True,"quotes":quotes}
 
-def persist_scan(assets: list[dict[str, Any]]) -> None:
-    timestamp = now_iso()
-    with db_session() as conn:
-        conn.executemany("""INSERT INTO scans
-            (scanned_at,asset_id,symbol,name,chain,price_usd,change_24h,liquidity_usd,volume_24h_usd,discovery_score,source,payload_json)
-            VALUES (?,?,?,?,?,?,?,?,?,?,?,?)""", [
-            (timestamp, a.get("asset_id"), a.get("symbol"), a.get("name"), a.get("chain"),
-             a.get("price_usd"), a.get("change_24h_pct"), a.get("liquidity_usd"),
-             a.get("volume_24h_usd"), a.get("discovery_score"), a.get("source"),
-             json.dumps(a, ensure_ascii=False)) for a in assets
-        ])
-
-def persist_events(events: list[dict[str, Any]]) -> None:
-    with db_session() as conn:
-        for e in events:
-            conn.execute("""INSERT INTO source_events
-                (observed_at,source,event_type,title,url,published_at,verification,payload_json)
-                VALUES (?,?,?,?,?,?,?,?)""",
-                (now_iso(),e.get("source","unknown"),e.get("event_type","news"),e.get("title"),
-                 e.get("url"),e.get("published_at"),e.get("verification","unverified"),
-                 json.dumps(e,ensure_ascii=False)))
-
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    init_db()
-    yield
-
-app = FastAPI(title="Catalyst Radar Data API", version=APP_VERSION, description="Multi-source market discovery and event-intelligence API. Discovery scores are heuristics, not probabilities.", lifespan=lifespan)
-origins = [x.strip() for x in os.getenv("CORS_ORIGINS", "https://alexberik.github.io,http://localhost:8000,http://127.0.0.1:8000").split(",") if x.strip()]
-app.add_middleware(CORSMiddleware, allow_origins=origins, allow_credentials=False, allow_methods=["GET"], allow_headers=["*"])
 
 @app.get("/health")
 async def health():

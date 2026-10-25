@@ -1,214 +1,377 @@
 <!doctype html>
 <html lang="ru">
 <head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Catalyst Radar — Institutional Market Intelligence</title>
-<meta name="description" content="Market Intelligence Platform: real market data, crypto and equity discovery, Extreme Move Scanner, catalysts, source health and paper trading. Research signals are labelled and forecasts are not claimed as validated without backtesting.">
-<meta name="theme-color" content="#080d14">
-<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Playfair+Display:wght@400;500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=20261025-terminal-v3">
-<script src="app.js" defer></script>
+<meta name="description" content="Market intelligence platform: crypto discovery, extreme moves, catalysts, equities events and paper trading. Research signals only.">
+<meta name="theme-color" content="#08080a">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=Playfair+Display:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<script src="demo.js" defer></script>
 </head>
 <body>
 <div class="ambient" aria-hidden="true"></div>
+
+<!-- TOP BAR -->
 <header class="topbar">
-  <a class="brand" href="#top"><span class="brand-symbol"><i></i><i></i><i></i></span><span>CATALYST<span class="brand-light">RADAR</span><small>INSTITUTIONAL TERMINAL · AI INTELLIGENCE LAB</small></span></a>
-  <nav><a href="#overview">Market pulse</a><a href="#intelligence-api">Intelligence API</a><a href="#demo-collector">Demo history</a><a href="#discovery">Новые активы</a><a href="#majors">Крупные активы</a><a href="#listings">Listings</a><a href="#rumors">Rumor desk</a><a href="#equities">Equities</a><a href="#geopolitics">War & rebuild</a><a href="#sources">Sources</a><a href="#paper">Paper lab</a></nav>
-  <div class="top-actions"><span class="live-pill"><span></span> SCANNING</span><button id="refresh-btn" class="icon-button" aria-label="Refresh feeds" title="Refresh feeds">↻</button><button id="lang-btn" class="language">RU / EN</button></div>
+  <a class="brand" href="#top">
+    <span class="brand-mark"></span>
+    <span class="brand-text">
+      <strong>CATALYST</strong><span>RADAR</span>
+      <small>INSTITUTIONAL TERMINAL</small>
+    </span>
+  </a>
+  <nav class="nav">
+    <a href="#overview">Pulse</a>
+    <a href="#discovery">Discovery</a>
+    <a href="#majors">Core</a>
+    <a href="#geopolitics">Events</a>
+    <a href="#sources">Sources</a>
+    <a href="#paper">Paper</a>
+  </nav>
+  <div class="top-actions">
+    <span class="live-pill"><i></i> LIVE</span>
+    <button id="refresh-btn" class="icon-btn" title="Refresh">↻</button>
+    <button id="lang-btn" class="lang-btn">RU / EN</button>
+  </div>
 </header>
+
 <main id="top">
-<section class="hero shell">
- <div class="hero-copy">
-  <div class="eyebrow"><span class="pulse"></span> MARKET INTELLIGENCE PLATFORM <span class="eyebrow-sep">/</span> CRYPTO · EQUITIES · CATALYSTS</div>
-  <h1>Рынок.<br><em>Без слепых зон.</em></h1>
-  <p>Единая исследовательская платформа: криптовалюты, акции, экстремальные движения, новости и катализаторы. От наблюдаемого сигнала — к проверке данных и результатам paper trading.</p>
-  <div class="hero-actions"><a class="btn btn-bright" href="#discovery">Открыть радар <span>↘</span></a><a class="btn btn-outline" href="#sources">Карта источников <span>↗</span></a></div>
-  <div class="trust-tags"><span>● Реальные данные, где доступны</span><span>◇ Слухи маркируются отдельно</span><span>◷ Никаких выдуманных прогнозов</span></div>
- </div>
- <aside class="hero-console">
-  <div class="console-head"><span>RADAR STATUS</span><span class="mono" id="utc-clock">--:--:-- UTC</span></div>
-  <div class="console-main"><div class="radar-orb"><div class="orb-ring ring-one"></div><div class="orb-ring ring-two"></div><div class="orb-core">CR<span>SCAN</span></div><span class="orb-dot d1"></span><span class="orb-dot d2"></span><span class="orb-dot d3"></span></div><div class="console-state"><b id="scan-state">Initializing feeds</b><p id="scan-substate">Connecting to public market endpoints</p><div class="progress-track"><span id="scan-progress"></span></div><small id="scan-updated">Last scan: waiting for response</small></div></div>
-  <div class="console-metrics"><div><b id="metric-tokens">—</b><span>TOKEN CANDIDATES</span></div><div><b id="metric-pools">—</b><span>NEW POOLS</span></div><div><b id="metric-news">—</b><span>NEWS ITEMS</span></div></div>
- </aside>
-</section>
-<section class="shell signal-strip">
- <div class="strip-title"><span class="tiny-pulse"></span> LIVE FEED HEALTH</div>
- <div class="feed-chip"><span class="feed-dot" id="dot-dex"></span><span>DEXSCREENER</span><b id="health-dex">CONNECTING</b></div>
- <div class="feed-chip"><span class="feed-dot" id="dot-gecko"></span><span>GECKOTERMINAL</span><b id="health-gecko">CONNECTING</b></div>
- <div class="feed-chip"><span class="feed-dot" id="dot-news"></span><span>GDELT NEWS</span><b id="health-news">CONNECTING</b></div>
- <div class="feed-chip"><span class="feed-dot warn"></span><span>LISTING / SOCIAL</span><b>LINKED SOURCES</b></div>
- <div class="strip-time" id="last-updated">Updated —</div>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-inner">
+    <div class="hero-copy">
+      <div class="eyebrow"><span class="dot"></span> MARKET INTELLIGENCE · CRYPTO · EQUITIES · CATALYSTS</div>
+      <h1>Рынок.<br><em>Без слепых зон.</em></h1>
+      <p class="lead">Единая исследовательская платформа: аномалии, новые пулы, катализаторы и paper-trading. Только наблюдаемые данные — никаких выдуманных прогнозов.</p>
+      <div class="hero-cta">
+        <a class="btn btn-primary" href="#discovery">Открыть радар <span>↘</span></a>
+        <a class="btn btn-ghost" href="#sources">Источники</a>
+      </div>
+      <div class="hero-tags">
+        <span>● Реальные данные</span>
+        <span>◇ Слухи отдельно</span>
+        <span>◷ Без выдуманных прогнозов</span>
+      </div>
+    </div>
+    <aside class="hero-status">
+      <div class="status-card">
+        <div class="status-head">
+          <span>RADAR STATUS</span>
+          <time id="clock">--:-- UTC</time>
+        </div>
+        <div class="radar-visual">
+          <div class="radar-ring"></div>
+          <div class="radar-ring delay"></div>
+          <div class="radar-core">CR</div>
+        </div>
+        <div class="status-stats">
+          <div><strong id="stat-candidates">—</strong><span>CANDIDATES</span></div>
+          <div><strong id="stat-pools">—</strong><span>NEW POOLS</span></div>
+          <div><strong id="stat-news">—</strong><span>NEWS</span></div>
+        </div>
+      </div>
+    </aside>
+  </div>
 </section>
 
-<section id="intelligence-api" class="shell api-intel-section">
- <div class="section-heading"><div><div class="eyebrow">01 / MARKET INTELLIGENCE API</div><h2>Extreme Move Scanner & Watchlist</h2><p>Серверный слой данных: аномалии, наблюдаемое направление импульса, события и здоровье источников. Это исследовательские сигналы, не проверенные прогнозы доходности.</p></div><span id="api-state" class="overview-stamp"><i></i> API CONNECTING</span></div>
- <div class="api-toolbar"><div class="api-tabs"><button type="button" data-api-view="scanner" class="active">Extreme Move Scanner</button><button type="button" data-api-view="forecast">24–48h watchlist</button><button type="button" data-api-view="news">News & catalysts</button><button type="button" data-api-view="sources">Data observatory</button></div><button type="button" id="api-refresh" class="btn btn-outline">Refresh API ↻</button></div>
- <div id="api-summary" class="api-summary-grid"><article><span>API status</span><b>Checking…</b><small>Server-side endpoints</small></article><article><span>Observed candidates</span><b>—</b><small>No placeholder values</small></article><article><span>Forecast validation</span><b>Not backtested</b><small>Transparent limitation</small></article></div>
- <div id="api-content" class="api-content"><div class="chart-empty">Connecting to the Market Intelligence API. If it is unavailable, the existing public-source radar remains available.</div></div>
- <p class="api-disclaimer">Method note: anomaly score and signal-quality score are rule-based rankings. No probability of profit or expected return is claimed. Provider coverage, latency and liquidity gaps can materially affect results.</p>
-</section>\n<section id="demo-collector" class="shell demo-collector-section">
- <div class="demo-collector-head"><div><div class="eyebrow">DEMO MODEL / PUBLIC GITHUB SNAPSHOTS</div><h2>История сбора данных</h2><p>Демо-сборщик сохраняет rolling-историю до 24 часов в репозитории. Обновление планируется каждые 5 минут; GitHub Actions может задерживать запуски.</p></div><span class="demo-mode-pill">DEMO · NO PRIVATE KEYS</span></div>
- <div class="demo-window-tabs" role="group" aria-label="Период сравнения">
-  <button type="button" data-demo-window="5m" class="active">5 минут</button><button type="button" data-demo-window="30m">30 минут</button><button type="button" data-demo-window="1h">1 час</button><button type="button" data-demo-window="24h">24 часа</button>
- </div>
- <div class="demo-stats-grid">
-  <article><span>Кандидаты в последнем снимке</span><b id="demo-crypto-count">—</b><small>Новые пулы / токены</small></article>
-  <article><span>Новые за выбранный период</span><b id="demo-new-count">—</b><small>Сравнение ID между снимками</small></article>
-  <article><span>Акции с доступной ценой</span><b id="demo-equity-count">—</b><small>Публичный demo endpoint</small></article>
-  <article><span>Заголовки новостей</span><b id="demo-news-count">—</b><small>GDELT · требует проверки</small></article>
- </div>
- <div class="demo-collector-foot"><span id="demo-snapshot-time">Collector installed · waiting for first scheduled snapshot</span><span id="demo-window-note">History is accumulating; comparisons become meaningful after multiple successful runs.</span></div>
- <div class="demo-source-links"><a href="data/demo-market.json" target="_blank" rel="noopener">Открыть сохранённые данные ↗</a><a href="https://github.com/Alexberik/catalyst-radar/actions/workflows/demo-market-data.yml" target="_blank" rel="noopener">История запусков сборщика ↗</a></div>
+<!-- LIVE FEED HEALTH -->
+<section class="section feed-health">
+  <div class="section-head">
+    <span class="section-num">00</span>
+    <h2>Live Feed Health</h2>
+  </div>
+  <div class="health-grid" id="live-feed-health">
+    <div class="health-item"><span class="h-dot green"></span><div><strong>DEXSCREENER</strong><small>PUBLIC · DEX</small></div></div>
+    <div class="health-item"><span class="h-dot green"></span><div><strong>GECKOTERMINAL</strong><small>PUBLIC · POOLS</small></div></div>
+    <div class="health-item"><span class="h-dot amber"></span><div><strong>GDELT NEWS</strong><small>CONNECTING</small></div></div>
+    <div class="health-item"><span class="h-dot muted"></span><div><strong>LISTINGS / SOCIAL</strong><small>LINKED</small></div></div>
+  </div>
 </section>
 
-<section id="overview" class="shell section overview-section">
- <div class="section-heading"><div><div class="eyebrow">00 / MARKET PULSE</div><h2>Обзор рынка и карта риска</h2><p>Визуальная сводка строится только по активам, которые реально вернули подключённые публичные источники. Если данных нет — график это покажет.</p></div><span class="overview-stamp"><i></i> DATA-DRIVEN VIEW</span></div>
- <div class="overview-kpis">
-  <article class="kpi-card"><div class="kpi-label"><span class="kpi-mark violet"></span> Кандидаты в радаре</div><b id="ov-candidates">—</b><div class="kpi-foot"><span id="ov-candidate-note">Ожидание потока</span><span class="kpi-mini">ASSETS</span></div></article>
-  <article class="kpi-card"><div class="kpi-label"><span class="kpi-mark green"></span> Ликвидность в выборке</div><b id="ov-liquidity">—</b><div class="kpi-foot"><span>Сумма известных пулов</span><span class="kpi-mini">USD</span></div></article>
-  <article class="kpi-card"><div class="kpi-label"><span class="kpi-mark amber"></span> Повышенный риск</div><b id="ov-highrisk">—</b><div class="kpi-foot"><span id="ov-risk-note">Тонкая ликвидность / экстремум</span><span class="risk-pill amber">CAUTION</span></div></article>
-  <article class="kpi-card"><div class="kpi-label"><span class="kpi-mark red"></span> Промо / буст</div><b id="ov-promoted">—</b><div class="kpi-foot"><span>Не считать органическим спросом</span><span class="risk-pill red">CHECK</span></div></article>
- </div>
- <div class="visual-grid visual-grid-top">
-  <article class="visual-card chart-card wide-chart"><div class="visual-head"><div><span class="chart-index">01</span><b>Импульс цены · 24 часа</b><small>Топ активов по абсолютному движению; зелёный рост, красное падение</small></div><span class="chart-unit">% / 24H</span></div><div id="momentum-chart" class="chart-stage"><div class="chart-empty">Ожидаем рыночные данные…</div></div><div class="chart-legend"><span><i class="legend-dot green"></i> Рост</span><span><i class="legend-dot red"></i> Падение</span><span><i class="legend-dot gray"></i> Цена не предоставлена источником</span></div></article>
-  <article class="visual-card"><div class="visual-head"><div><span class="chart-index">02</span><b>Распределение риска</b><small>По флагам в текущей выборке</small></div><span class="chart-unit">FLAGS</span></div><div id="risk-chart" class="risk-chart-stage"><div class="chart-empty">Ожидаем данные…</div></div><div class="risk-scale"><span><i class="legend-dot green"></i> Низкий набор флагов</span><span><i class="legend-dot amber"></i> Требует проверки</span><span><i class="legend-dot red"></i> Повышенный риск</span></div></article>
- </div>
- <div class="visual-grid visual-grid-bottom">
-  <article class="visual-card"><div class="visual-head"><div><span class="chart-index">03</span><b>Ликвидность vs объём</b><small>Пузырьки — отдельные пулы, размер условный</small></div><span class="chart-unit">USD</span></div><div id="liquidity-chart" class="chart-stage scatter-stage"><div class="chart-empty">Ожидаем данные…</div></div><div class="chart-footnote">Высокий объём при низкой ликвидности может указывать на волатильность или манипуляции. Это не сигнал покупки.</div></article>
-  <article class="visual-card signal-flow-card"><div class="visual-head"><div><span class="chart-index">04</span><b>Путь сигнала</b><small>От обнаружения до решения</small></div><span class="chart-unit">PIPELINE</span></div><div class="signal-flow">
-   <div class="flow-node flow-source"><span>01</span><div><b>Источники</b><small>DEX · новости · filings</small></div><i>IN</i></div><div class="flow-link"><span></span><small>нормализация</small></div>
-   <div class="flow-node flow-check"><span>02</span><div><b>Проверка</b><small>ликвидность · контракт · первоисточник</small></div><i>CHECK</i></div><div class="flow-link"><span></span><small>оценка риска</small></div>
-   <div class="flow-split"><div class="flow-node flow-pass"><span>03A</span><div><b>Наблюдать</b><small>данные достаточно полны</small></div></div><div class="flow-node flow-stop"><span>03B</span><div><b>Стоп / проверка</b><small>красные флаги или мало данных</small></div></div></div>
-  </div></article>
- </div>
- <div class="risk-key"><div><span class="risk-swatch green"></span><b>Зелёный</b><small>Нет явных красных флагов в доступных данных — не гарантия безопасности.</small></div><div><span class="risk-swatch amber"></span><b>Жёлтый</b><small>Недостаточно данных, сильное движение или нужна дополнительная проверка.</small></div><div><span class="risk-swatch red"></span><b>Красный</b><small>Тонкая ликвидность, экстремальная волатильность или высокий объём к ликвидности.</small></div></div>
-</section>
-<section id="discovery" class="shell section">
- <div class="section-heading"><div><div class="eyebrow">01 / EARLY DISCOVERY</div><h2>Радар новых активов</h2><p>Новые пулы, активность DEX, ликвидность и импульс. Сортировка помогает находить кандидатов, но не означает прогноз доходности.</p></div><div class="heading-tools"><span class="counter" id="candidate-count">0 candidates</span><button class="btn btn-small btn-outline" id="export-btn">Export CSV ↗</button></div></div>
- <div class="filterbar">
-  <div class="filter-tabs" id="asset-filters"><button class="filter active" data-filter="all"><span class="filter-dot blue"></span>All discovery</button><button class="filter" data-filter="new"><span class="filter-dot green"></span>New pools</button><button class="filter" data-filter="meme"><span class="filter-dot violet"></span>Meme watch</button><button class="filter" data-filter="boost"><span class="filter-dot amber"></span>Boosted</button><button class="filter" data-filter="highrisk"><span class="filter-dot red"></span>High risk</button></div>
-  <div class="search-wrap"><span>⌕</span><input id="asset-search" type="search" placeholder="Token, ticker, chain…"></div>
- </div>
- <div class="table-wrap"><table class="data-table"><thead><tr><th>ASSET / CHAIN</th><th>PRICE</th><th>1H / 24H</th><th>LIQUIDITY</th><th>24H VOLUME</th><th>DISCOVERY</th><th>РИСК</th><th>СЦЕНАРИЙ $1 / 24Ч</th><th>INFO</th></tr></thead><tbody id="asset-rows"><tr><td colspan="9" class="empty-cell"><span class="loader"></span> Loading on-chain discovery feeds…</td></tr></tbody></table></div><div class="scenario-note"><b>Как читать сценарий:</b> расчёт показывает, сколько стоил бы $1, если бы изменение за последние 24 часа повторилось ещё раз. Это математический сценарий по прошлому движению, <strong>не прогноз и не обещание доходности</strong>; комиссии, проскальзывание и возможность продажи не учтены.</div>
- <div class="table-foot"><span id="asset-footnote">Source: public DEX endpoints. Waiting for first response.</span><button class="text-button" id="show-more">Show more ↓</button></div>
+<!-- OVERVIEW / MARKET PULSE -->
+<section class="section" id="overview">
+  <div class="section-head">
+    <span class="section-num">01</span>
+    <h2>Market Pulse</h2>
+    <p class="section-desc">Визуальная сводка только по активам, которые реально вернули данные.</p>
+  </div>
+
+  <div class="pulse-grid">
+    <div class="card chart-card">
+      <div class="card-head"><span>01 · Импульс 24ч</span><span class="mono">% / 24H</span></div>
+      <div class="chart-area" id="momentum-chart">
+        <div class="empty-state">Ожидаем рыночные данные…</div>
+      </div>
+      <div class="legend">
+        <span><i class="g"></i> Рост</span>
+        <span><i class="r"></i> Падение</span>
+      </div>
+    </div>
+
+    <div class="card chart-card">
+      <div class="card-head"><span>02 · Риск-флаги</span><span class="mono">FLAGS</span></div>
+      <div class="chart-area" id="risk-chart">
+        <div class="empty-state">Ожидаем данные…</div>
+      </div>
+    </div>
+
+    <div class="card chart-card wide">
+      <div class="card-head"><span>03 · Ликвидность vs объём</span><span class="mono">USD</span></div>
+      <div class="chart-area scatter" id="liq-vol-chart">
+        <div class="empty-state">Ожидаем данные…</div>
+      </div>
+      <p class="note">Высокий объём при низкой ликвидности может указывать на волатильность или манипуляции. Это не сигнал покупки.</p>
+    </div>
+
+    <div class="card pipeline-card">
+      <div class="card-head"><span>04 · Путь сигнала</span><span class="mono">PIPELINE</span></div>
+      <div class="pipeline">
+        <div class="pipe-step"><span class="n">01</span><div><strong>Источники</strong><small>DEX · новости · filings</small></div><em>IN</em></div>
+        <div class="pipe-step"><span class="n">02</span><div><strong>Проверка</strong><small>ликвидность · контракт</small></div><em>CHECK</em></div>
+        <div class="pipe-step success"><span class="n">03A</span><div><strong>Наблюдать</strong><small>данные достаточны</small></div></div>
+        <div class="pipe-step danger"><span class="n">03B</span><div><strong>Стоп</strong><small>красные флаги</small></div></div>
+      </div>
+      <div class="risk-legend">
+        <div><span class="tag green">Зелёный</span> Нет явных красных флагов — не гарантия.</div>
+        <div><span class="tag amber">Жёлтый</span> Нужна доп. проверка.</div>
+        <div><span class="tag red">Красный</span> Тонкая ликвидность / экстремум.</div>
+      </div>
+    </div>
+  </div>
 </section>
 
-<section id="majors" class="shell section majors-section">
- <div class="section-heading"><div><div class="eyebrow">01B / CORE MARKET</div><h2>Крупные активы и рыночный ориентир</h2><p>Отдельный экран для BTC, ETH, XRP и других крупных монет, включая стейблкоины. Котировки и свечи запрашиваются у публичного рыночного API; стейблкоины помечены отдельно.</p></div><div class="heading-tools"><span class="market-live"><i></i> PUBLIC MARKET DATA</span><button class="btn btn-small btn-outline" id="majors-refresh">Обновить ↻</button></div></div>
- <div class="major-ticker-grid" id="major-tickers"><div class="chart-empty">Загружаем котировки крупных активов…</div></div>
- <div class="major-visual-grid">
-  <article class="visual-card major-candle-card"><div class="visual-head"><div><span class="chart-index">05</span><b>Свечной график BTC / USDT</b><small id="candle-subtitle">Часовые свечи · данные публичного рынка</small></div><div class="chart-controls"><select id="candle-interval" aria-label="Интервал свечей"><option value="1h">1 час</option><option value="4h">4 часа</option><option value="1d">1 день</option></select><span class="chart-unit">OHLCV</span></div></div><div class="candle-legend"><span><i class="legend-dot green"></i> Закрытие выше открытия</span><span><i class="legend-dot red"></i> Закрытие ниже открытия</span><span id="candle-last-price">Последняя цена: —</span></div><div id="candle-chart" class="candle-chart"><div class="chart-empty">Ожидаем свечные данные…</div></div></article>
-  <article class="visual-card"><div class="visual-head"><div><span class="chart-index">06</span><b>Ширина рынка</b><small>Изменение за 24 часа у загруженных активов</small></div><span class="chart-unit">ADV / DEC</span></div><div id="breadth-chart" class="breadth-chart"><div class="chart-empty">Ожидаем котировки…</div></div><div class="chart-footnote">Это обзор динамики выбранной корзины, а не всего крипторынка. Котировки могут отличаться между биржами.</div></article>
- </div>
- <div class="major-bottom-grid">
-  <article class="visual-card"><div class="visual-head"><div><span class="chart-index">07</span><b>Объём торгов · 24 часа</b><small>Сравнение выбранных торговых пар</small></div><span class="chart-unit">USDT</span></div><div id="major-volume-chart" class="major-volume-chart"><div class="chart-empty">Ожидаем объёмы…</div></div></article>
-  <article class="visual-card"><div class="visual-head"><div><span class="chart-index">08</span><b>Состав наблюдаемой корзины</b><small>Классификация активов, не доли капитализации</small></div><span class="chart-unit">ASSET MIX</span></div><div id="asset-mix-chart" class="asset-mix-chart"><div class="chart-empty">Ожидаем данные…</div></div></article>
- </div>
- <div class="notice-line"><span>ⓘ</span><p><b>Как читать:</b> зелёная свеча означает, что цена закрытия выше цены открытия; красная — ниже. Цвет риска не является инвестиционной рекомендацией. USDT показан как стейблкоин с ориентиром привязки к $1, а не как независимо измеренная котировка USD.</p></div>
-</section>
-<section id="listings" class="shell section">
- <div class="section-heading"><div><div class="eyebrow">02 / LISTING INTELLIGENCE</div><h2>До листинга — а не после</h2><p>Отслеживаем официальные объявления и сигналы подготовки к запуску. Ни один сторонний пост не считается подтверждением листинга.</p></div><span class="section-status"><i></i> SOURCE WATCH</span></div>
- <div class="three-grid">
-  <article class="feature-card listing-card"><div class="card-top"><span class="card-icon">↗</span><span class="source-tag official">OFFICIAL</span></div><h3>Биржевые объявления</h3><p>Новые торговые пары, поддержка депозитов, launchpool, launchpad и delisting notices.</p><div class="source-links"><a href="https://www.binance.com/en/support/announcement" target="_blank" rel="noopener">Binance announcements ↗</a><a href="https://www.coinbase.com/blog" target="_blank" rel="noopener">Coinbase blog ↗</a><a href="https://www.kraken.com/learn" target="_blank" rel="noopener">Kraken Learn ↗</a></div><div class="card-foot"><span class="status-dot amber"></span> External official feeds · API integration pending</div></article>
-  <article class="feature-card listing-card"><div class="card-top"><span class="card-icon violet">◈</span><span class="source-tag signal">ON-CHAIN</span></div><h3>Подготовка к запуску</h3><p>Свежие пулы, рост ликвидности, создание токенов и всплеск активности. Это косвенные признаки, не доказательство листинга.</p><div class="source-links"><a href="https://www.geckoterminal.com/" target="_blank" rel="noopener">GeckoTerminal ↗</a><a href="https://dexscreener.com/" target="_blank" rel="noopener">DEX Screener ↗</a><a href="https://www.dextools.io/" target="_blank" rel="noopener">DEXTools ↗</a></div><div class="card-foot"><span class="status-dot green"></span> Public DEX data</div></article>
-  <article class="feature-card listing-card"><div class="card-top"><span class="card-icon pink">◎</span><span class="source-tag unverified">UNVERIFIED</span></div><h3>Ранние упоминания</h3><p>Сообщения сообщества и слухи могут быть полезным поводом для проверки, но сами по себе не повышают статус до подтверждённого.</p><div class="source-links"><a href="https://x.com/search?q=token%20listing&src=typed_query" target="_blank" rel="noopener">X search: listing ↗</a><a href="https://www.reddit.com/search/?q=token%20listing" target="_blank" rel="noopener">Reddit search ↗</a><a href="https://cryptopanic.com/" target="_blank" rel="noopener">CryptoPanic ↗</a></div><div class="card-foot"><span class="status-dot amber"></span> Manual verification required</div></article>
- </div>
- <div class="notice-line"><span>ⓘ</span><p><b>Правило доказательств:</b> официальный источник → подтверждённое событие; несколько независимых источников → corroborated; один анонимный пост → слух. Статус, время публикации и ссылка на первоисточник должны сохраняться у каждой записи.</p></div>
-</section>
-<section id="rumors" class="shell section">
- <div class="section-heading"><div><div class="eyebrow">03 / INTELLIGENCE DESK</div><h2>Новости, слухи и катализаторы</h2><p>Публичный новостной поток — с указанием издателя и ссылкой на оригинал. Это не мониторинг закрытых чатов или всех аккаунтов соцсетей.</p></div><div class="heading-tools"><span class="counter" id="news-count">0 stories</span><button class="btn btn-small btn-outline" id="news-refresh">Refresh news ↻</button></div></div>
- <div class="news-layout"><div class="news-list" id="news-list"><div class="empty-cell"><span class="loader"></span> Fetching public headlines…</div></div>
- <aside class="rumor-panel"><div class="panel-title"><span class="eyebrow">SIGNAL VERIFICATION</span><span class="shield">◇</span></div><h3>Шкала доверия к слухам</h3><div class="verify-step"><span class="verify-num v1">01</span><div><b>Unverified</b><p>Один пост, анонимный источник, нет первичного подтверждения.</p></div></div><div class="verify-step"><span class="verify-num v2">02</span><div><b>Corroborating</b><p>Есть независимые совпадающие сообщения, но первоисточник не найден.</p></div></div><div class="verify-step"><span class="verify-num v3">03</span><div><b>Primary source</b><p>Официальное объявление, регуляторный документ или прямая публикация компании.</p></div></div><div class="verify-step"><span class="verify-num v4">04</span><div><b>Market confirmed</b><p>Событие подтверждено и видно в торговых данных. Цена всё ещё может пойти в любую сторону.</p></div></div><div class="rumor-warning">Слух — это повод исследовать, а не покупать. Подделки, платные промо и манипуляции могут выглядеть как «инсайд».</div></aside></div>
-</section>
-<section id="equities" class="shell section">
- <div class="section-heading"><div><div class="eyebrow">04 / EQUITY EVENT RADAR</div><h2>Малые компании и ранние катализаторы</h2><p>Фокус на IPO, регуляторных решениях, клинических событиях, контрактах и необычных корпоративных новостях — не на списке крупнейших акций.</p></div><span class="source-tag signal">EVENT-LED</span></div>
- <div class="equity-grid">
-  <article class="equity-card"><div class="equity-symbol">IPO</div><div><b>Новые размещения</b><p>Подачи S-1/F-1, изменение сроков IPO, выход на биржу и lock-up события.</p><a href="https://www.sec.gov/edgar/search/" target="_blank" rel="noopener">SEC EDGAR search ↗</a></div></article>
-  <article class="equity-card"><div class="equity-symbol">FDA</div><div><b>Biotech / regulatory</b><p>FDA calendar, клинические результаты и документы регуляторов — события с бинарным риском.</p><a href="https://www.fda.gov/news-events/press-announcements" target="_blank" rel="noopener">FDA press releases ↗</a></div></article>
-  <article class="equity-card"><div class="equity-symbol">8-K</div><div><b>Корпоративные события</b><p>Контракты, финансирование, смена руководства, сделки и внезапные раскрытия.</p><a href="https://www.sec.gov/edgar/search/" target="_blank" rel="noopener">SEC filings ↗</a></div></article>
-  <article class="equity-card"><div class="equity-symbol">NEWS</div><div><b>Небольшие публичные компании</b><p>Ищем событие, затем проверяем ликвидность и реальные котировки у лицензированного поставщика.</p><a href="https://www.nasdaq.com/market-activity/ipos" target="_blank" rel="noopener">Nasdaq IPO calendar ↗</a></div></article>
- </div>
- <div class="notice-line"><span>!</span><p>В текущей статической версии реальные котировки акций не подключены: здесь показаны двери к первичным источникам, а не фиктивные цены. Для полноценного stock scanner понадобится серверный сборщик и источник котировок с подходящей лицензией.</p></div>
-</section>
-<section id="geopolitics" class="shell section geo-section">
- <div class="section-heading"><div><div class="eyebrow">04B / GEOPOLITICAL CATALYST RADAR</div><h2>Война, оборона и восстановление</h2><p>Акции, чувствительные к военным бюджетам, заявлениям лидеров, санкциям, прекращению огня и будущему восстановлению Украины и Ближнего Востока. Это список наблюдения, а не рекомендация покупать.</p></div><div class="heading-tools"><span class="geo-badge"><i></i> EVENT-DRIVEN WATCHLIST</span><button class="btn btn-small btn-outline" id="geo-refresh">Обновить новости ↻</button></div></div>
- <div class="geo-intro-grid">
-  <article class="geo-thesis"><span class="geo-kicker">01 / DEFENCE & AEROSPACE</span><h3>Оборонные бюджеты и пополнение запасов</h3><p>Реакция чаще зависит не от самого заголовка о конфликте, а от подтверждённых заказов, контрактов, объёмов производства, бюджетов и прогнозов компаний.</p><div class="geo-trigger-row"><span class="trigger-up">▲ Возможный позитив: новые контракты / рост бюджета</span><span class="trigger-down">▼ Риск: деэскалация / задержка закупок / дорогая оценка</span></div></article>
-  <article class="geo-thesis rebuild"><span class="geo-kicker">02 / RECONSTRUCTION & MATERIALS</span><h3>Строительство и восстановление</h3><p>Возможность для цемента, инертных материалов, аренды техники, инженерных подрядчиков и стали — только если финансирование, тендеры и реальные проекты подтверждаются.</p><div class="geo-trigger-row"><span class="trigger-up">▲ Возможный позитив: финансирование / тендеры / начало работ</span><span class="trigger-down">▼ Риск: продолжающиеся удары / страхование / дорогая энергия</span></div></article>
- </div>
- <div class="geo-watch-grid">
-  <article class="geo-watch-card defence"><div class="geo-card-head"><span class="geo-icon">DEF</span><div><b>Оборона и ПВО</b><small>США · Европа · Южная Корея</small></div><span class="geo-sensitivity high">ВЫСОКАЯ ЧУВСТВИТЕЛЬНОСТЬ</span></div><div class="geo-tickers">
-   <a class="geo-ticker" href="https://finance.yahoo.com/quote/RTX/" target="_blank" rel="noopener"><span><b>RTX</b><small>RTX Corporation · ракеты / ПВО</small></span><em>NYSE ↗</em></a>
-   <a class="geo-ticker" href="https://finance.yahoo.com/quote/LMT/" target="_blank" rel="noopener"><span><b>LMT</b><small>Lockheed Martin · авиация / ракеты</small></span><em>NYSE ↗</em></a>
-   <a class="geo-ticker" href="https://finance.yahoo.com/quote/NOC/" target="_blank" rel="noopener"><span><b>NOC</b><small>Northrop Grumman · авиация / системы</small></span><em>NYSE ↗</em></a>
-   <a class="geo-ticker" href="https://finance.yahoo.com/quote/RHM.DE/" target="_blank" rel="noopener"><span><b>RHM.DE</b><small>Rheinmetall · боеприпасы / бронетехника</small></span><em>XETRA ↗</em></a>
-   <a class="geo-ticker" href="https://finance.yahoo.com/quote/BA.L/" target="_blank" rel="noopener"><span><b>BA.L</b><small>BAE Systems · оборонные системы</small></span><em>LSE ↗</em></a>
-   <a class="geo-ticker" href="https://finance.yahoo.com/quote/7011.T/" target="_blank" rel="noopener"><span><b>7011.T</b><small>Mitsubishi Heavy Industries · оборона / индустрия</small></span><em>TSE ↗</em></a>
-  </div><div class="geo-catalyst"><b>Что отслеживать</b><span>Контракты на ракеты и ПВО, пополнение запасов, бюджетные голосования, расширение производства, экспортные разрешения.</span></div></article>
-  <article class="geo-watch-card build"><div class="geo-card-head"><span class="geo-icon">BLD</span><div><b>Строительство и материалы</b><small>Восстановление / инфраструктура</small></div><span class="geo-sensitivity medium">СРЕДНЯЯ / УСЛОВНАЯ</span></div><div class="geo-tickers">
-   <a class="geo-ticker" href="https://finance.yahoo.com/quote/CAT/" target="_blank" rel="noopener"><span><b>CAT</b><small>Caterpillar · тяжёлая техника</small></span><em>NYSE ↗</em></a>
-   <a class="geo-ticker" href="https://finance.yahoo.com/quote/URI/" target="_blank" rel="noopener"><span><b>URI</b><small>United Rentals · аренда техники</small></span><em>NYSE ↗</em></a>
-   <a class="geo-ticker" href="https://finance.yahoo.com/quote/CRH/" target="_blank" rel="noopener"><span><b>CRH</b><small>CRH · цемент / строительные материалы</small></span><em>NYSE ↗</em></a>
-   <a class="geo-ticker" href="https://finance.yahoo.com/quote/HEI.DE/" target="_blank" rel="noopener"><span><b>HEI.DE</b><small>Heidelberg Materials · цемент</small></span><em>XETRA ↗</em></a>
-   <a class="geo-ticker" href="https://finance.yahoo.com/quote/HOLN.SW/" target="_blank" rel="noopener"><span><b>HOLN.SW</b><small>Holcim · цемент / решения для строительства</small></span><em>SIX ↗</em></a>
-   <a class="geo-ticker" href="https://finance.yahoo.com/quote/MT/" target="_blank" rel="noopener"><span><b>MT</b><small>ArcelorMittal · сталь</small></span><em>NYSE ↗</em></a>
-  </div><div class="geo-catalyst"><b>Что отслеживать</b><span>Объявленные фонды восстановления, тендеры, гарантии и кредиты, контракты на инфраструктуру, цены на энергию и сталь.</span></div></article>
- </div>
- <div class="geo-quote-note"><b>Котировки и проверка:</b> карточки открывают рыночные страницы выбранных тикеров. В этой статической версии нет лицензированного live-feed по акциям, поэтому я не подставляю выдуманные цены или проценты. После выбора провайдера котировок здесь можно добавить цену, изменение за 1 ч / 24 ч, свечи и объём.</div>
- <div class="geo-news-panel"><div class="visual-head"><div><span class="chart-index">09</span><b>Геополитические заголовки и катализаторы</b><small>Поиск по публичному новостному индексу; это подсказки для проверки, не автоматические торговые сигналы</small></div><span class="chart-unit" id="geo-news-status">ОЖИДАНИЕ</span></div><div id="geo-news-list" class="geo-news-list"><div class="chart-empty">Загружаем новости по Украине, Ирану, Израилю, оборонным заказам и восстановлению…</div></div><div class="geo-news-foot">Перед решением проверяй первоисточник, дату, подтверждение контракта и реакцию цены. Заголовок о заявлении политика может вызвать краткий всплеск, но движение часто быстро разворачивается.</div></div>
-</section>
-<section id="sources" class="shell section">
- <div class="section-heading"><div><div class="eyebrow">05 / DATA INFRASTRUCTURE</div><h2>Карта источников</h2><p>Много источников не равно много правды. Каждый поток должен иметь тип, свежесть, ссылку, историю изменений и оценку надёжности.</p></div><span class="counter" id="source-live-count">3 live connectors</span></div>
- <div class="source-matrix">
-  <div class="source-row source-header"><span>CHANNEL</span><span>WHAT WE COLLECT</span><span>MODE</span><span>STATUS</span></div>
-  <div class="source-row"><div><b>DEX Screener</b><small>DEX market data</small></div><span>Token profiles, boosts, pair liquidity and volume</span><span class="mode-chip live">PUBLIC API</span><span class="source-health" id="row-dex"><i></i> Connecting</span></div>
-  <div class="source-row"><div><b>GeckoTerminal</b><small>New pools</small></div><span>New pool listings, FDV, reserve, price change</span><span class="mode-chip live">PUBLIC API</span><span class="source-health" id="row-gecko"><i></i> Connecting</span></div>
-  <div class="source-row"><div><b>GDELT</b><small>Public news index</small></div><span>Publisher headlines and event discovery queries</span><span class="mode-chip live">PUBLIC API</span><span class="source-health" id="row-news"><i></i> Connecting</span></div>
-  <div class="source-row"><div><b>Exchange announcements</b><small>Primary source</small></div><span>Listing, launchpad, deposit and trading notices</span><span class="mode-chip linked">SOURCE LINKS</span><span class="source-health pending"><i></i> Not ingested yet</span></div>
-  <div class="source-row"><div><b>X / Reddit / Telegram</b><small>Community / rumor</small></div><span>Mentions, repost velocity, source reputation, rumor clusters</span><span class="mode-chip needs">API / COLLECTOR</span><span class="source-health pending"><i></i> Not ingested yet</span></div>
-  <div class="source-row"><div><b>SEC / FDA / IPO</b><small>Company events</small></div><span>Filings, regulatory decisions, offering announcements</span><span class="mode-chip linked">SOURCE LINKS</span><span class="source-health pending"><i></i> Not ingested yet</span></div>
-  <div class="source-row"><div><b>Equity price feed</b><small>Licensed market data</small></div><span>Real-time / delayed quote, volume, float and corporate actions</span><span class="mode-chip needs">PROVIDER KEY</span><span class="source-health pending"><i></i> Not connected</span></div>
-  <div class="source-row"><div><b>On-chain analytics</b><small>Wallet / holder activity</small></div><span>Holder concentration, deployer links, liquidity locks, wallet clusters</span><span class="mode-chip needs">PROVIDER KEY</span><span class="source-health pending"><i></i> Not connected</span></div>
- </div>
- <div class="provider-board">
-  <div class="provider-board-head"><div><div class="eyebrow">SOURCE ACQUISITION / API CHECKLIST</div><h3>Какие API подключить следующими</h3><p>Это карта сбора данных: что получать, зачем, где получить доступ и что нужно передать для интеграции. Статус «Нужен ключ» означает, что источник ещё не подключён к автоматическому сборщику.</p></div><span class="counter">PRIORITY 01–03</span></div>
-  <div class="provider-legend"><span><i class="legend-dot connected"></i> Подключён в браузере</span><span><i class="legend-dot free"></i> Публичный / бесплатный старт</span><span><i class="legend-dot key"></i> Нужен API key / тариф</span><span><i class="legend-dot pending"></i> Нужен серверный коннектор</span></div>
-  <div class="provider-priority"><span>01</span><div><b>Сначала — ранние токены и безопасность</b><small>DEX Screener + GeckoTerminal + GoPlus + RugCheck + Helius/Birdeye</small></div><em>CORE</em></div>
-  <div class="provider-grid">
-   <article class="provider-card"><div class="provider-card-top"><span class="provider-kind chain">ON-CHAIN / DEX</span><span class="provider-state live-state">LIVE · NO KEY</span></div><h4>DEX Screener</h4><p>Новые профили и boosted-токены; цена, пары, ликвидность, объём, транзакции и ссылки на DEX.</p><div class="provider-data"><b>Забирать</b><span>pairCreatedAt · priceUsd · liquidity.usd · volume.h24 · txns · fdv · boosts</span></div><a href="https://docs.dexscreener.com/api/reference" target="_blank" rel="noopener">API docs ↗</a><small class="provider-purpose">Роль: находить активы до попадания в крупные рейтинги. Риск: boost может быть платной рекламой.</small></article>
-   <article class="provider-card"><div class="provider-card-top"><span class="provider-kind chain">NEW POOLS</span><span class="provider-state live-state">LIVE · NO KEY</span></div><h4>GeckoTerminal</h4><p>Новые пулы и OHLCV по сетям; возраст пула, резерв, динамика цены и объёма.</p><div class="provider-data"><b>Забирать</b><span>pool_created_at · reserve_in_usd · price_change_percentage · volume_usd · transactions</span></div><a href="https://www.geckoterminal.com/dex-api" target="_blank" rel="noopener">API overview ↗</a><small class="provider-purpose">Роль: подтверждать раннюю активность и считать историю пула.</small></article>
-   <article class="provider-card"><div class="provider-card-top"><span class="provider-kind security">TOKEN SAFETY</span><span class="provider-state key-state">PUBLIC API / LIMITS</span></div><h4>GoPlus Security</h4><p>Проверка риска токена: honeypot-признаки, налоги, mint/freeze, права владельца и другие доступные поля.</p><div class="provider-data"><b>Забирать</b><span>token_security · owner privileges · buy/sell tax · honeypot flags</span></div><a href="https://docs.gopluslabs.io/" target="_blank" rel="noopener">API docs ↗</a><small class="provider-purpose">Роль: красные флаги до отображения кандидата. Поддержка зависит от сети.</small></article>
-   <article class="provider-card"><div class="provider-card-top"><span class="provider-kind security">SOLANA SAFETY</span><span class="provider-state free-state">PUBLIC LOOKUP</span></div><h4>RugCheck</h4><p>Проверки Solana-токенов, mint/freeze authority, LP и доступные риск-факторы.</p><div class="provider-data"><b>Забирать</b><span>risk score · risk reasons · mint/freeze status · LP indicators</span></div><a href="https://docs.rugcheck.xyz/" target="_blank" rel="noopener">Docs ↗</a><small class="provider-purpose">Роль: отдельная проверка Solana; не считать один score гарантией безопасности.</small></article>
-   <article class="provider-card"><div class="provider-card-top"><span class="provider-kind chain">SOLANA / WALLETS</span><span class="provider-state key-state">API KEY</span></div><h4>Helius или Birdeye</h4><p>Транзакции, токен-метаданные, кошельки и более глубокие Solana-данные. Выбрать одного первым.</p><div class="provider-data"><b>Забирать</b><span>token holders · wallet activity · transfers · token metadata · liquidity signals</span></div><div class="provider-links"><a href="https://www.helius.dev/" target="_blank" rel="noopener">Helius ↗</a><a href="https://docs.birdeye.so/" target="_blank" rel="noopener">Birdeye docs ↗</a></div><small class="provider-purpose">Роль: ранние кошельки, концентрация держателей и активность создателя. Тарифы/лимиты проверить.</small></article>
-   <article class="provider-card"><div class="provider-card-top"><span class="provider-kind listings">LISTINGS / EVENTS</span><span class="provider-state key-state">API / PLAN</span></div><h4>CoinMarketCal или CryptoRank</h4><p>Календарь событий: предполагаемые листинги, запуск mainnet, unlocks и другие даты сообщества.</p><div class="provider-data"><b>Забирать</b><span>event · asset · event date · source URL · community votes · verification status</span></div><div class="provider-links"><a href="https://coinmarketcal.com/en/doc" target="_blank" rel="noopener">CoinMarketCal API ↗</a><a href="https://cryptorank.io/" target="_blank" rel="noopener">CryptoRank ↗</a></div><small class="provider-purpose">Роль: раннее предупреждение, а не подтверждение. Каждое событие перепроверять по бирже.</small></article>
-   <article class="provider-card"><div class="provider-card-top"><span class="provider-kind social">SOCIAL / RUMOURS</span><span class="provider-state key-state">API KEY / ACCESS</span></div><h4>X API</h4><p>Посты проектов, бирж, разработчиков и наблюдаемых исследователей; скорость упоминаний и оригинальность источника.</p><div class="provider-data"><b>Забирать</b><span>post ID · author · created_at · text · engagement · quoted/reposted links</span></div><a href="https://developer.x.com/en/docs" target="_blank" rel="noopener">Developer docs ↗</a><small class="provider-purpose">Роль: rumor velocity. Нужен доступ/тариф; не обещаем полный охват X.</small></article>
-   <article class="provider-card"><div class="provider-card-top"><span class="provider-kind social">COMMUNITY</span><span class="provider-state key-state">APP / BOT</span></div><h4>Reddit + Telegram</h4><p>Публичные сабреддиты и выбранные публичные каналы/группы. Для Telegram требуется явно определить наблюдаемые каналы и допустимый способ доступа.</p><div class="provider-data"><b>Забирать</b><span>message/post ID · channel/subreddit · author · timestamp · text · links · engagement</span></div><div class="provider-links"><a href="https://www.reddit.com/dev/api/" target="_blank" rel="noopener">Reddit API ↗</a><a href="https://core.telegram.org/bots/api" target="_blank" rel="noopener">Telegram Bot API ↗</a></div><small class="provider-purpose">Роль: слухи и ранние обсуждения. Не читать закрытые чаты без разрешения; соблюдать лимиты и правила платформ.</small></article>
-   <article class="provider-card"><div class="provider-card-top"><span class="provider-kind news">NEWS / SENTIMENT</span><span class="provider-state free-state">START FREE</span></div><h4>GDELT + CryptoPanic</h4><p>Глобальные новости и крипто-новости с издателем, временем, ссылкой и упоминанием актива.</p><div class="provider-data"><b>Забирать</b><span>headline · publisher · published_at · URL · entities · sentiment if provided</span></div><div class="provider-links"><a href="https://www.gdeltproject.org/" target="_blank" rel="noopener">GDELT ↗</a><a href="https://cryptopanic.com/developers/api/" target="_blank" rel="noopener">CryptoPanic API ↗</a></div><small class="provider-purpose">Роль: найти событие и дубликаты. Настоящий тон публикации лучше пересчитывать отдельно.</small></article>
+<!-- EARLY DISCOVERY -->
+<section class="section" id="discovery">
+  <div class="section-head">
+    <span class="section-num">02</span>
+    <h2>Early Discovery</h2>
+    <p class="section-desc">Новые пулы и активность DEX. Сортировка помогает находить кандидатов — не прогноз доходности.</p>
   </div>
-  <div class="provider-priority"><span>02</span><div><b>Акции малой капитализации, IPO и регуляторные катализаторы</b><small>SEC + FDA/ClinicalTrials + лицензированный stock feed</small></div><em>SMALL CAPS</em></div>
-  <div class="provider-grid">
-   <article class="provider-card"><div class="provider-card-top"><span class="provider-kind equities">FILINGS / PRIMARY</span><span class="provider-state free-state">FREE API</span></div><h4>SEC EDGAR</h4><p>Подачи 8-K, S-1/F-1, 13D/G, Form 4 и другие документы американских эмитентов.</p><div class="provider-data"><b>Забирать</b><span>CIK · ticker mapping · form type · filed_at · accession · primary document URL</span></div><a href="https://www.sec.gov/edgar/sec-api-documentation" target="_blank" rel="noopener">SEC API docs ↗</a><small class="provider-purpose">Роль: первичное подтверждение событий. Нужен корректный User-Agent и соблюдение fair-access limits.</small></article>
-   <article class="provider-card"><div class="provider-card-top"><span class="provider-kind equities">FDA / BIOTECH</span><span class="provider-state free-state">FREE API</span></div><h4>openFDA + ClinicalTrials.gov</h4><p>Регуляторные документы и исследования; даты, статусы и идентификаторы испытаний.</p><div class="provider-data"><b>Забирать</b><span>drug/device events · trial ID · phase · status · update date · sponsor</span></div><div class="provider-links"><a href="https://open.fda.gov/apis/" target="_blank" rel="noopener">openFDA ↗</a><a href="https://clinicaltrials.gov/data-api/about-api" target="_blank" rel="noopener">ClinicalTrials API ↗</a></div><small class="provider-purpose">Роль: катализаторы биотеха; календарные даты не гарантируют исход или движение цены.</small></article>
-   <article class="provider-card"><div class="provider-card-top"><span class="provider-kind equities">STOCK PRICES</span><span class="provider-state key-state">KEY / LICENSE</span></div><h4>Massive (Polygon) или Finnhub</h4><p>Котировки, свечи, объём и корпоративные действия. Перед выбором проверить покрытие OTC/pink sheets и права на публичное отображение.</p><div class="provider-data"><b>Забирать</b><span>ticker · OHLCV · timestamp · exchange · market status · splits/dividends</span></div><div class="provider-links"><a href="https://massive.com/docs" target="_blank" rel="noopener">Massive docs ↗</a><a href="https://finnhub.io/docs/api" target="_blank" rel="noopener">Finnhub docs ↗</a></div><small class="provider-purpose">Роль: только с реальной ценой можно считать импульс, ликвидность, gap и результат бумажной сделки.</small></article>
+
+  <div class="toolbar">
+    <div class="filters" id="discovery-filters">
+      <button class="chip active" data-filter="all">All</button>
+      <button class="chip" data-filter="new">New pools</button>
+      <button class="chip" data-filter="meme">Meme</button>
+      <button class="chip" data-filter="boosted">Boosted</button>
+      <button class="chip" data-filter="risk">High risk</button>
+    </div>
+    <div class="toolbar-right">
+      <span class="mono" id="discovery-count">0 candidates</span>
+      <button class="btn btn-ghost sm" id="export-csv">Export CSV ↗</button>
+    </div>
   </div>
-  <div class="provider-priority"><span>03</span><div><b>Потом — расширение охвата и контроль качества</b><small>Альтернативные данные, дополнительные сети, хранение и проверка результатов</small></div><em>EXPANSION</em></div>
-  <div class="provider-bottom">
-   <div><b>Хранение и расписание</b><p>PostgreSQL + серверный worker/cron: хранить сырой ответ, нормализованные поля, время события/сбора, URL, версию парсера и историю ошибок. Не класть секретные ключи в GitHub Pages.</p></div>
-   <div><b>Официальные листинги</b><p>Сначала подписаться на официальные announcements/RSS/API бирж (Binance, Coinbase, Kraken и выбранные площадки). Если официального API нет — только разрешённый мониторинг публичных страниц с ограничением частоты.</p></div>
-   <div><b>Как считаем слух</b><p>Сохранять автора, первое время публикации, первоисточник, независимые подтверждения и дубликаты. Слух не превращать в факт; paid boosts помечать отдельно от органического спроса.</p></div>
-   <div><b>Как оценивать актив</b><p>Отдельные показатели: новизна, ликвидность, объём/ликвидность, ускорение упоминаний, концентрация держателей, безопасность контракта, качество источников и риск манипуляции. Это не вероятность роста.</p></div>
+
+  <div class="table-wrap">
+    <table class="data-table" id="discovery-table">
+      <thead>
+        <tr>
+          <th>ASSET / CHAIN</th>
+          <th>PRICE</th>
+          <th>1H / 24H</th>
+          <th>LIQUIDITY</th>
+          <th>24H VOL</th>
+          <th>RISK</th>
+          <th>SCENARIO $1</th>
+        </tr>
+      </thead>
+      <tbody id="discovery-body">
+        <tr><td colspan="7" class="loading-row">Loading on-chain discovery feeds…</td></tr>
+      </tbody>
+    </table>
   </div>
-  <div class="api-request"><div><span class="eyebrow">DEMO MODE / PUBLIC DATA</span><h3>Первый запуск без приватных ключей</h3><p>Сейчас используем публичные источники без ключа: DEX Screener, GeckoTerminal, Yahoo Finance chart endpoint и GDELT. Сначала проверим сбор, историю и качество данных, затем добавим платные или авторизованные API, когда будет понятна их реальная польза.</p><p class="api-warning">Репозиторий публичный: не сохранять секретные API-ключи здесь, даже временно. Файлы data/demo-market.json и GitHub Actions предназначены для публичной демо-истории, а не для хранения секретов или персональных данных.</p><a class="btn btn-bright" href="https://github.com/Alexberik/catalyst-radar" target="_blank" rel="noopener">Репозиторий для интеграции ↗</a></div><div class="api-checklist"><label><input type="checkbox" disabled> GoPlus — token security</label><label><input type="checkbox" disabled> Helius или Birdeye — Solana on-chain</label><label><input type="checkbox" disabled> X API — social signal</label><label><input type="checkbox" disabled> CryptoPanic — crypto news</label><label><input type="checkbox" disabled> Massive/Polygon или Finnhub — equities</label><label><input type="checkbox" disabled> CoinMarketCal/CryptoRank — listing calendar</label><small>Чек-лист показывает список запросов, а не статус уже полученных ключей.</small></div></div>
- </div>
- <div class="source-principles"><div><span>01</span><b>Provenance first</b><p>Keep URL, publisher, event time, collected time and raw record.</p></div><div><span>02</span><b>Cross-check claims</b><p>Separate official confirmation from rumor and sponsored promotion.</p></div><div><span>03</span><b>Never fake live data</b><p>When a source fails, show stale / unavailable instead of inventing values.</p></div><div><span>04</span><b>Measure outcomes</b><p>Save every published candidate and later compare against 24h / 48h results.</p></div></div>
+  <p class="note">Сценарий $1 показывает, сколько стоил бы $1 при повторении 24ч-движения. Это математика по прошлому, <strong>не прогноз</strong>.</p>
 </section>
-<section id="paper" class="shell section">
- <div class="section-heading"><div><div class="eyebrow">06 / PAPER LAB</div><h2>Виртуальный портфель</h2><p>Проверяй идеи без реальных денег. Только активы с доступной котировкой из текущего discovery-потока; результаты сохраняются в этом браузере.</p></div><span class="paper-badge">SIMULATION ONLY</span></div>
- <div class="paper-layout"><div class="paper-balance"><div class="balance-label">DEMO EQUITY</div><div class="balance-total" id="paper-total">$100.00</div><div class="balance-stats"><div><span>Cash</span><b id="paper-cash">$100.00</b></div><div><span>Unrealized P/L</span><b id="paper-pnl">$0.00</b></div></div><div class="paper-actions"><input id="paper-amount" type="number" min="1" step="1" value="10" aria-label="Trade amount in USD"><button id="paper-buy" class="btn btn-bright">Buy selected</button><button id="paper-sell" class="btn btn-outline">Sell selected</button></div><p class="muted tiny">Симуляция не учитывает полную глубину стакана, сетевые комиссии или проскальзывание. Это не подключение к бирже.</p></div><div class="paper-positions"><div class="panel-title"><b>OPEN POSITIONS</b><span id="position-count">0</span></div><div id="positions-list" class="positions-empty">Select a token from the discovery radar to begin.</div><button id="paper-reset" class="text-button reset-button">Reset virtual account ↺</button></div></div>
+
+<!-- CORE MARKET -->
+<section class="section" id="majors">
+  <div class="section-head">
+    <span class="section-num">03</span>
+    <h2>Core Market</h2>
+    <p class="section-desc">BTC, ETH и крупные активы. Публичные котировки и свечи.</p>
+  </div>
+
+  <div class="majors-grid">
+    <div class="card chart-card wide">
+      <div class="card-head">
+        <span>BTC / USDT · Hourly</span>
+        <div class="interval-tabs">
+          <button class="chip active" data-interval="1h">1H</button>
+          <button class="chip" data-interval="4h">4H</button>
+          <button class="chip" data-interval="1d">1D</button>
+        </div>
+      </div>
+      <div class="chart-area candles" id="btc-candles">
+        <div class="empty-state">Ожидаем свечные данные…</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-head"><span>Market Breadth</span><span class="mono">ADV / DEC</span></div>
+      <div class="chart-area" id="breadth-chart">
+        <div class="empty-state">Ожидаем котировки…</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-head"><span>24H Volume</span><span class="mono">USDT</span></div>
+      <div class="chart-area" id="volume-chart">
+        <div class="empty-state">Ожидаем объёмы…</div>
+      </div>
+    </div>
+  </div>
 </section>
-<section class="shell final-note"><div class="final-mark">CR</div><div><h3>Discovery is not a promise.</h3><p>CATALYST RADAR помогает замечать неизвестное и проверять гипотезы. Он не гарантирует листинг, рост или прибыль. Низкая капитализация, всплеск упоминаний и высокая оценка discovery могут означать и повышенный риск манипуляции.</p></div><a href="https://github.com/Alexberik/catalyst-radar" target="_blank" rel="noopener">Inspect project ↗</a></section>
+
+<!-- LISTINGS + RUMORS (Coming soon) -->
+<section class="section" id="listings">
+  <div class="section-head">
+    <span class="section-num">04</span>
+    <h2>Listing Intelligence</h2>
+    <p class="section-desc">До листинга — а не после. Официальные источники vs слухи.</p>
+  </div>
+  <div class="coming-grid">
+    <div class="coming-card">
+      <span class="coming-label">OFFICIAL</span>
+      <h3>Биржевые объявления</h3>
+      <p>Новые пары, launchpad, deposit notices.</p>
+      <div class="coming-badge">Coming soon</div>
+    </div>
+    <div class="coming-card">
+      <span class="coming-label">ON-CHAIN</span>
+      <h3>Подготовка к запуску</h3>
+      <p>Свежие пулы, рост ликвидности, активность.</p>
+      <div class="coming-badge">Coming soon</div>
+    </div>
+    <div class="coming-card">
+      <span class="coming-label">UNVERIFIED</span>
+      <h3>Ранние упоминания</h3>
+      <p>Сообщество и слухи — только повод для проверки.</p>
+      <div class="coming-badge">Coming soon</div>
+    </div>
+  </div>
+</section>
+
+<!-- RUMOR DESK -->
+<section class="section" id="rumors">
+  <div class="section-head">
+    <span class="section-num">05</span>
+    <h2>Intelligence Desk</h2>
+    <p class="section-desc">Публичные новости с указанием издателя и ссылкой.</p>
+  </div>
+  <div class="card coming-block">
+    <div class="coming-inner">
+      <div class="coming-badge large">Coming soon</div>
+      <p>GDELT + CryptoPanic интеграция в работе. Пока используйте внешние источники.</p>
+    </div>
+  </div>
+</section>
+
+<!-- EQUITIES + GEOPOLITICS -->
+<section class="section" id="geopolitics">
+  <div class="section-head">
+    <span class="section-num">06</span>
+    <h2>Event Radar · War & Rebuild</h2>
+    <p class="section-desc">Акции, чувствительные к оборонным бюджетам, санкциям и восстановлению. Список наблюдения, не рекомендация.</p>
+  </div>
+
+  <div class="event-grid">
+    <div class="card">
+      <div class="card-head"><span>DEFENCE & AEROSPACE</span><span class="tag amber">HIGH</span></div>
+      <p class="card-body">Контракты, бюджеты, пополнение запасов.</p>
+      <div class="ticker-row">
+        <a href="https://finance.yahoo.com/quote/RTX/" target="_blank" rel="noopener">RTX</a>
+        <a href="https://finance.yahoo.com/quote/LMT/" target="_blank" rel="noopener">LMT</a>
+        <a href="https://finance.yahoo.com/quote/NOC/" target="_blank" rel="noopener">NOC</a>
+        <a href="https://finance.yahoo.com/quote/RHM.DE/" target="_blank" rel="noopener">RHM.DE</a>
+        <a href="https://finance.yahoo.com/quote/BA.L/" target="_blank" rel="noopener">BA.L</a>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-head"><span>RECONSTRUCTION</span><span class="tag muted">CONDITIONAL</span></div>
+      <p class="card-body">Цемент, техника, сталь — только при подтверждённом финансировании.</p>
+      <div class="ticker-row">
+        <a href="https://finance.yahoo.com/quote/CAT/" target="_blank" rel="noopener">CAT</a>
+        <a href="https://finance.yahoo.com/quote/URI/" target="_blank" rel="noopener">URI</a>
+        <a href="https://finance.yahoo.com/quote/CRH/" target="_blank" rel="noopener">CRH</a>
+        <a href="https://finance.yahoo.com/quote/MT/" target="_blank" rel="noopener">MT</a>
+      </div>
+    </div>
+  </div>
+  <div class="card coming-block" style="margin-top:16px">
+    <div class="coming-inner">
+      <div class="coming-badge large">Coming soon</div>
+      <p>Live equity quotes и геополитические заголовки появятся после подключения лицензированного feed.</p>
+    </div>
+  </div>
+</section>
+
+<!-- SOURCES -->
+<section class="section" id="sources">
+  <div class="section-head">
+    <span class="section-num">07</span>
+    <h2>Source Map</h2>
+    <p class="section-desc">Каждый поток имеет тип, свежесть и статус. Много источников ≠ много правды.</p>
+  </div>
+
+  <div class="sources-table">
+    <div class="src-row"><span class="src-name">DEX Screener</span><span class="src-type">PUBLIC API</span><span class="src-status live">LIVE</span></div>
+    <div class="src-row"><span class="src-name">GeckoTerminal</span><span class="src-type">PUBLIC API</span><span class="src-status live">LIVE</span></div>
+    <div class="src-row"><span class="src-name">GDELT</span><span class="src-type">PUBLIC API</span><span class="src-status amber">CONNECTING</span></div>
+    <div class="src-row"><span class="src-name">GoPlus / RugCheck</span><span class="src-type">SECURITY</span><span class="src-status muted">PLANNED</span></div>
+    <div class="src-row"><span class="src-name">SEC EDGAR / FDA</span><span class="src-type">PRIMARY</span><span class="src-status muted">PLANNED</span></div>
+    <div class="src-row"><span class="src-name">Equity price feed</span><span class="src-type">LICENSED</span><span class="src-status muted">NEEDED</span></div>
+  </div>
+</section>
+
+<!-- PAPER LAB -->
+<section class="section" id="paper">
+  <div class="section-head">
+    <span class="section-num">08</span>
+    <h2>Paper Lab</h2>
+    <p class="section-desc">Виртуальный счёт $100. Симуляция, не реальная торговля.</p>
+  </div>
+  <div class="card coming-block">
+    <div class="coming-inner">
+      <div class="coming-badge large">Coming soon</div>
+      <p>Paper trading workspace в разработке. История снимков уже собирается через GitHub Actions.</p>
+    </div>
+  </div>
+</section>
+
 </main>
-<footer class="footer shell"><span>MARKET INTELLIGENCE <small>CATALYST RADAR PLATFORM</small></span><span>Public sources · Source-labelled · Paper only</span><span id="footer-version">BUILD 02 / OCT 2026</span></footer>
-<div id="toast" class="toast" role="status" aria-live="polite"></div>
-<script src="platform-api.js" defer></script>\n</body></html>
+
+<footer class="footer">
+  <div class="footer-inner">
+    <div class="footer-brand">
+      <strong>CATALYST RADAR</strong>
+      <span>Research & simulation only · Not investment advice</span>
+    </div>
+    <div class="footer-meta mono">
+      <a href="https://github.com/Alexberik/catalyst-radar" target="_blank" rel="noopener">GitHub ↗</a>
+      <span>·</span>
+      <span>v0.3 · rebrand</span>
+    </div>
+  </div>
+</footer>
+
+<script>
+// Minimal clock + placeholder hooks so existing app.js can enhance
+(function(){
+  function tick(){
+    const el = document.getElementById('clock');
+    if(el){
+      const d = new Date();
+      el.textContent = d.toISOString().slice(11,16) + ' UTC';
+    }
+  }
+  tick();
+  setInterval(tick, 30000);
+})();
+</script>
+</body>
+</html>

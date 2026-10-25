@@ -12,6 +12,7 @@ const SOURCES = {
 const networks = ["solana","base","eth","bsc","arbitrum"];
 const $safe = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 function fmt(n, d=2) { const x=Number(n); if(!Number.isFinite(x)) return "—"; return x.toLocaleString("en-US",{maximumFractionDigits:d,minimumFractionDigits:d}); }
+function changeLabel(n,d=1){const x=Number(n);if(n==null||!Number.isFinite(x))return "—";if(Math.abs(x)>10000)return "⚠ проверить";return (x>0?"+":"")+fmt(x,d)+"%";}
 function money(n,d=2){const x=Number(n);if(!Number.isFinite(x))return "—";return (x<0?"-$":"$")+fmt(Math.abs(x),d);}
 function short(n){n=Number(n);if(!Number.isFinite(n))return "—";if(n>=1e9)return "$"+fmt(n/1e9,1)+"B";if(n>=1e6)return "$"+fmt(n/1e6,1)+"M";if(n>=1e3)return "$"+fmt(n/1e3,1)+"K";return "$"+fmt(n,0);}
 function ago(date){if(!date)return "time unavailable";const sec=Math.max(0,(Date.now()-new Date(date).getTime())/1000);if(!Number.isFinite(sec))return "time unavailable";if(sec<60)return Math.floor(sec)+"s ago";if(sec<3600)return Math.floor(sec/60)+"m ago";if(sec<86400)return Math.floor(sec/3600)+"h ago";return Math.floor(sec/86400)+"d ago";}
@@ -42,7 +43,7 @@ function scoreAsset(a){
  return Math.max(0,Math.min(99,Math.round(score)));
 }
 function flags(a){
- const out=[];if((a.liquidity||0)<5000)out.push("THIN LIQ");if((a.liquidity||0)>0&&(a.volume||0)/(a.liquidity||1)>15)out.push("VOL/LIQ");if(Math.abs(a.change24||0)>100)out.push("EXTREME MOVE");if(a.boosted)out.push("PROMOTED");if(a.age!==null&&a.age<24)out.push("VERY NEW");if(!a.liquidity)out.push("LIQ N/A");return out.slice(0,2);
+ const out=[];if((a.liquidity||0)<5000)out.push("THIN LIQ");if((a.liquidity||0)>0&&(a.volume||0)/(a.liquidity||1)>15)out.push("VOL/LIQ");if(Math.abs(a.change24||0)>100)out.push("EXTREME MOVE");if(Math.abs(Number(a.change24)||0)>10000||Math.abs(Number(a.change1h)||0)>10000)out.push("DATA OUTLIER");if(a.boosted)out.push("PROMOTED");if(a.age!==null&&a.age<24)out.push("VERY NEW");if(!a.liquidity)out.push("LIQ N/A");return out.slice(0,2);
 }
 async function fetchJson(url, timeout=9000){
  const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),timeout);
@@ -127,8 +128,8 @@ function renderAssets(){
  if(!show.length){body.innerHTML='<tr><td colspan="9" class="empty-cell">No matching assets. If feeds are blocked, try refresh later.</td></tr>';return;}
  body.innerHTML=show.map(a=>{
   const price=a.price==null?"—":money(a.price,a.price<0.01?8:a.price<1?5:3);
-  const ch1=a.change1h==null?"—":(a.change1h>=0?"+":"")+fmt(a.change1h,1)+"%";
-  const ch24=a.change24==null?"—":(a.change24>=0?"+":"")+fmt(a.change24,1)+"%";
+  const ch1=changeLabel(a.change1h,1);
+  const ch24=changeLabel(a.change24,1);
   const flagsText=a.flags.length?a.flags.slice(0,2).join(" · "):((a.liquidity!=null&&a.price!=null)?"LOW FLAGS*":"DATA GAP");
   const avatar=a.image?'<img src="'+$safe(a.image)+'" alt="" loading="lazy" onerror="this.style.display=\'none\'">':$safe((a.symbol||a.name||"?").slice(0,2));
   const hasScenario=a.change24!=null&&Number.isFinite(Number(a.change24));

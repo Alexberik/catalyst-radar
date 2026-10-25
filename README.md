@@ -12,10 +12,10 @@ A first server-side API foundation now lives in [`backend/`](backend/README.md).
 - Implemented public sources: DEX Screener, GeckoTerminal, CoinPaprika, Binance Spot, GDELT, GoPlus Security, RugCheck, ClinicalTrials.gov and openFDA.
 - Optional keyed sources: CoinGecko, CryptoPanic, Finnhub, X API, Reddit, Helius and Birdeye.
 - SEC EDGAR submissions can be monitored when company CIKs and a descriptive SEC User-Agent are configured.
-- API endpoints include discovery, source health, news/events, token risk checks, biotech catalyst discovery, stock quotes and historical scan storage.
+- API endpoints include discovery, source health, news/events, token risk checks, biotech catalyst discovery, stock quotes, historical scan storage, an Extreme Move Scanner and an experimental directional watchlist.
 - Added Docker support, environment-variable template, SQLite development storage, scoring tests and GitHub Actions CI.
-- The FastAPI backend is **committed but not deployed or connected to the live GitHub Pages frontend yet**. The new GitHub Actions demo collector is separate and writes public snapshots to the repository. Never add credentials to browser JavaScript or this repository.
-- The current discovery score is a heuristic, not a calibrated probability or 24/48-hour return forecast. Durable production storage, scheduled background collection, licensed stock-data coverage, source corroboration and forward backtests remain next steps.
+- The FastAPI backend is deployed as a public Vercel service at https://catalyst-radar-api.vercel.app and the GitHub Pages frontend now includes a live API workspace for Extreme Move Scanner, experimental 24–48h directional watchlist, news/catalysts and source observatory. The new GitHub Actions demo collector remains separate and writes public snapshots to the repository. Never add credentials to browser JavaScript or this repository.
+- The current discovery score is a heuristic, not a calibrated probability or 24/48-hour return forecast. Durable production storage, scheduled backend collection, licensed stock-data coverage, source corroboration and forward backtests remain next steps. The current Vercel SQLite path is ephemeral and must not be treated as durable history.
 
 See [backend setup and provider coverage](backend/README.md).
 

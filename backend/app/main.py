@@ -457,6 +457,110 @@ async def equity_quotes(symbols: str = Query(default="AAPL,NVDA,RTX,LMT,CAT,CRH"
     return {"generated_at":now_iso(),"configured":True,"quotes":quotes}
 
 
+
+@app.get(f"{API_PREFIX}/scanner/extreme-moves")
+async def extreme_moves(limit: int = Query(default=30, ge=1, le=100)):
+    """Rank observed anomalies; this endpoint does not predict future returns."""
+    payload = await discovery(limit=500)
+    candidates = []
+    for asset in payload.get("assets", []):
+        change_1h = num(asset.get("change_1h_pct"))
+        change_24h = num(asset.get("change_24h_pct"))
+        liquidity = num(asset.get("liquidity_usd")) or 0
+        volume = num(asset.get("volume_24h_usd")) or 0
+        flags = list(dict.fromkeys(asset.get("flags") or []))
+        if asset.get("promoted"):
+            flags.append("PROMOTED")
+        if liquidity < 5_000:
+            flags.append("LOW_OR_UNKNOWN_LIQUIDITY")
+        if change_24h is None and change_1h is None:
+            continue
+        movement = max(abs(x) for x in (change_1h, change_24h) if x is not None)
+        anomaly = min(100, round(min(movement, 100) * 0.55
+                                 + min(25, max(0, volume / max(liquidity, 1))) * 1.2
+                                 + (15 if asset.get("pool_age_hours") is not None and asset["pool_age_hours"] < 24 else 0)
+                                 + (10 if asset.get("promoted") else 0)))
+        if movement >= 15:
+            flags.append("LARGE_PRICE_MOVE")
+        if liquidity > 0 and volume / liquidity > 20:
+            flags.append("EXTREME_VOLUME_LIQUIDITY_RATIO")
+        candidates.append({
+            **asset,
+            "anomaly_score": anomaly,
+            "observed_move_1h_pct": change_1h,
+            "observed_move_24h_pct": change_24h,
+            "anomaly_flags": sorted(set(flags)),
+            "signal_type": "observed_market_anomaly",
+            "forecast_probability": None,
+            "disclaimer": "Anomaly ranking is descriptive, not a prediction or probability of profit.",
+        })
+    candidates.sort(key=lambda x: (x["anomaly_score"], abs(x.get("observed_move_24h_pct") or x.get("observed_move_1h_pct") or 0)), reverse=True)
+    return {
+        "generated_at": now_iso(),
+        "count": len(candidates[:limit]),
+        "method": "transparent rule-based anomaly ranking",
+        "assets": candidates[:limit],
+        "source_errors": payload.get("source_errors", {}),
+        "limitations": ["Provider coverage is incomplete", "Unknown liquidity is not zero risk", "Promoted assets are flagged", "No calibrated forward-return model is claimed"],
+    }
+
+@app.get(f"{API_PREFIX}/forecast-candidates")
+async def forecast_candidates(horizon_hours: int = Query(default=24, ge=24, le=48), limit: int = Query(default=20, ge=1, le=100)):
+    """Experimental directional watchlist, not a calibrated or backtested forecast."""
+    payload = await discovery(limit=500)
+    rows = []
+    for asset in payload.get("assets", []):
+        price = num(asset.get("price_usd"))
+        change_1h = num(asset.get("change_1h_pct"))
+        change_24h = num(asset.get("change_24h_pct"))
+        if price is None or (change_1h is None and change_24h is None):
+            continue
+        liquidity = num(asset.get("liquidity_usd")) or 0
+        volume = num(asset.get("volume_24h_usd")) or 0
+        flags = list(dict.fromkeys(asset.get("flags") or []))
+        if asset.get("promoted"):
+            flags.append("PROMOTED")
+        if liquidity < 5_000:
+            flags.append("LOW_OR_UNKNOWN_LIQUIDITY")
+        direction = "insufficient_signal"
+        if change_1h is not None and change_24h is not None:
+            if change_1h > 0 and change_24h > 0:
+                direction = "positive_momentum"
+            elif change_1h < 0 and change_24h < 0:
+                direction = "negative_momentum"
+            else:
+                direction = "mixed_momentum"
+        elif change_24h is not None:
+            direction = "positive_momentum" if change_24h > 0 else "negative_momentum" if change_24h < 0 else "flat_momentum"
+        quality = 50
+        quality += 15 if liquidity >= 25_000 else 0
+        quality += 10 if volume >= 100_000 else 0
+        quality += 10 if change_1h is not None and change_24h is not None else 0
+        quality -= 20 if liquidity < 1_000 else 0
+        quality -= 10 if asset.get("promoted") else 0
+        quality = max(0, min(100, quality))
+        rows.append({
+            **asset,
+            "horizon_hours": horizon_hours,
+            "directional_signal": direction,
+            "signal_quality_score": quality,
+            "forecast_probability": None,
+            "expected_return_pct": None,
+            "validation_status": "not_backtested",
+            "signal_explanation": "Direction summarizes observed momentum only; no forward return is estimated.",
+            "risk_flags": sorted(set(flags)),
+        })
+    rows.sort(key=lambda x: (x["signal_quality_score"], abs(x.get("change_24h_pct") or 0)), reverse=True)
+    return {
+        "generated_at": now_iso(),
+        "horizon_hours": horizon_hours,
+        "count": len(rows[:limit]),
+        "status": "experimental_watchlist_not_a_validated_forecast",
+        "candidates": rows[:limit],
+        "source_errors": payload.get("source_errors", {}),
+        "disclaimer": "No calibrated probability or expected return is available until walk-forward backtesting is implemented on point-in-time data.",
+    }
+
 @app.get("/health")
 async def health():
     return {"status":"ok","service":"catalyst-radar-data-api","version":APP_VERSION,"time":now_iso()}

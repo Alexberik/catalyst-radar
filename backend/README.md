@@ -1,6 +1,6 @@
 # Catalyst Radar Data API
 
-Backend foundation for multi-source market discovery, event collection, source health, and historical signal storage. The public GitHub Pages site remains static; this API must be deployed separately to a Python host (or adapted to a serverless runtime) before the browser can use it.
+Backend foundation for multi-source market discovery, event collection, source health, and historical signal storage. The public GitHub Pages site remains static. A Vercel serverless deployment is live at https://catalyst-radar-api.vercel.app and is consumed by the frontend API workspace. This is an initial serverless deployment, not yet a durable production data platform.
 
 ## Run locally
 
@@ -21,6 +21,8 @@ Open `http://localhost:8000/docs`.
 - `GET /health` — service health.
 - `GET /api/v1/sources` — source configuration and last observed health.
 - `GET /api/v1/discovery?limit=100` — DEX discovery, new pools, CoinPaprika market data, Binance spot market data and optional CoinGecko.
+- `GET /api/v1/scanner/extreme-moves?limit=30` — transparent rule-based ranking of observed unusual moves.
+- `GET /api/v1/forecast-candidates?horizon_hours=24&limit=20` — experimental directional momentum watchlist; no expected return/probability until backtested.
 - `GET /api/v1/news?query=...` — GDELT news, optional CryptoPanic, and optional SEC submissions for configured CIKs.
 - `GET /api/v1/history?asset_id=...` — stored scan snapshots.
 - `GET /api/v1/events/history` — stored event snapshots.
@@ -43,6 +45,13 @@ Open `http://localhost:8000/docs`.
 - News from aggregators is marked unverified until corroborated by an official primary source.
 - SQLite is suitable for local development only. Use persistent storage/PostgreSQL before production deployment; ephemeral hosting may lose SQLite data.
 - This service does not place real trades and does not store exchange trading credentials.
+
+## Current deployment status and production gaps
+
+- The frontend and API are deployed, but the API runtime has not been independently smoke-tested from this execution environment because outbound DNS/network access is restricted here. Vercel reports the deployment as `READY`; open `/health` and `/docs` in a browser to verify live routing.
+- `DATABASE_PATH=/tmp/catalyst_radar.sqlite3` is intentionally ephemeral on the current serverless deployment. Do not rely on `/api/v1/history` or `/api/v1/events/history` as durable records across cold starts or instances.
+- The data collection endpoints currently collect on request. A persistent PostgreSQL/TimescaleDB database and independent scheduled worker are required for trustworthy history and model evaluation.
+- The watchlist is not a calibrated forecast. There is no verified 24/48-hour model performance until point-in-time observations, walk-forward evaluation, fees/slippage and benchmark comparisons are implemented.
 
 ## Next implementation steps
 

@@ -5,7 +5,7 @@ const $=id=>document.getElementById(id),state={view:"scanner",loading:false};
 const esc=v=>String(v??"—").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const fmt=(v,d=2)=>v==null||!Number.isFinite(Number(v))?"—":Number(v).toLocaleString(undefined,{maximumFractionDigits:d});
 const money=v=>v==null||!Number.isFinite(Number(v))?"—":"$"+Number(v).toLocaleString(undefined,{maximumFractionDigits:Number(v)<1?7:2});
-const move=v=>v==null?"—":(Number(v)>0?"+":"")+fmt(v,2)+"%";
+const move=v=>v==null?"—":!Number.isFinite(Number(v))?"—":Math.abs(Number(v))>10000?"⚠ Verify data":(Number(v)>0?"+":"")+fmt(v,2)+"%";
 async function get(path){const r=await fetch(API+path,{headers:{Accept:"application/json"},cache:"no-store"});if(!r.ok)throw Error("API HTTP "+r.status);return r.json();}
 function status(t,ok=false){const e=$("api-state");if(e){e.innerHTML="<i></i> "+esc(t);e.style.color=ok?"var(--accent,#70dc97)":"#efc06a";}}
 function summary(n,s){if($("api-summary"))$("api-summary").innerHTML='<article><span>API status</span><b>'+esc(s)+'</b><small>Server-side endpoints</small></article><article><span>Current records</span><b>'+esc(n)+'</b><small>Actual returned data only</small></article><article><span>Forecast validation</span><b>Not backtested</b><small>No probability / expected return published</small></article>';}

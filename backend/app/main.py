@@ -476,6 +476,8 @@ async def extreme_moves(limit: int = Query(default=30, ge=1, le=100)):
         if change_24h is None and change_1h is None:
             continue
         movement = max(abs(x) for x in (change_1h, change_24h) if x is not None)
+        if movement > 10_000:
+            flags.append("DATA_OUTLIER_VERIFY_PRICE_HISTORY")
         anomaly = min(100, round(min(movement, 100) * 0.55
                                  + min(25, max(0, volume / max(liquidity, 1))) * 1.2
                                  + (15 if asset.get("pool_age_hours") is not None and asset["pool_age_hours"] < 24 else 0)

@@ -22,6 +22,10 @@ See [backend setup and provider coverage](backend/README.md).
 
 Live site: https://alexberik.github.io/catalyst-radar/
 
+## Research and architecture
+
+- [Research blueprint and reference audit](docs/RESEARCH_BLUEPRINT.md) — implementation plan inspired by Vibe-Trading, Fincept Terminal and the Slash/Supabase design references. It documents current capabilities, target architecture, data providers, forecast validation, paper trading, licensing cautions and deployment needs.
+
 ## Product scope
 Discovery-first scanner for newly created crypto assets and meme coins, fresh DEX pools, possible exchange listings, public rumours, and event-driven small-cap equities. Established mega-caps are not the focus.
 

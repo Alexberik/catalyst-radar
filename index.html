@@ -41,7 +41,13 @@
  <div class="strip-time" id="last-updated">Updated —</div>
 </section>
 
-<section id="demo-collector" class="shell demo-collector-section">
+<section id="intelligence-api" class="shell api-intel-section">
+ <div class="section-heading"><div><div class="eyebrow">01 / MARKET INTELLIGENCE API</div><h2>Extreme Move Scanner & Watchlist</h2><p>Серверный слой данных: аномалии, наблюдаемое направление импульса, события и здоровье источников. Это исследовательские сигналы, не проверенные прогнозы доходности.</p></div><span id="api-state" class="overview-stamp"><i></i> API CONNECTING</span></div>
+ <div class="api-toolbar"><div class="api-tabs"><button type="button" data-api-view="scanner" class="active">Extreme Move Scanner</button><button type="button" data-api-view="forecast">24–48h watchlist</button><button type="button" data-api-view="news">News & catalysts</button><button type="button" data-api-view="sources">Data observatory</button></div><button type="button" id="api-refresh" class="btn btn-outline">Refresh API ↻</button></div>
+ <div id="api-summary" class="api-summary-grid"><article><span>API status</span><b>Checking…</b><small>Server-side endpoints</small></article><article><span>Observed candidates</span><b>—</b><small>No placeholder values</small></article><article><span>Forecast validation</span><b>Not backtested</b><small>Transparent limitation</small></article></div>
+ <div id="api-content" class="api-content"><div class="chart-empty">Connecting to the Market Intelligence API. If it is unavailable, the existing public-source radar remains available.</div></div>
+ <p class="api-disclaimer">Method note: anomaly score and signal-quality score are rule-based rankings. No probability of profit or expected return is claimed. Provider coverage, latency and liquidity gaps can materially affect results.</p>
+</section>\n<section id="demo-collector" class="shell demo-collector-section">
  <div class="demo-collector-head"><div><div class="eyebrow">DEMO MODEL / PUBLIC GITHUB SNAPSHOTS</div><h2>История сбора данных</h2><p>Демо-сборщик сохраняет rolling-историю до 24 часов в репозитории. Обновление планируется каждые 5 минут; GitHub Actions может задерживать запуски.</p></div><span class="demo-mode-pill">DEMO · NO PRIVATE KEYS</span></div>
  <div class="demo-window-tabs" role="group" aria-label="Период сравнения">
   <button type="button" data-demo-window="5m" class="active">5 минут</button><button type="button" data-demo-window="30m">30 минут</button><button type="button" data-demo-window="1h">1 час</button><button type="button" data-demo-window="24h">24 часа</button>
@@ -205,4 +211,4 @@
 </main>
 <footer class="footer shell"><span>CATALYST RADAR <small>EARLY SIGNAL INTELLIGENCE</small></span><span>Public sources · Source-labelled · Paper only</span><span id="footer-version">BUILD 02 / OCT 2026</span></footer>
 <div id="toast" class="toast" role="status" aria-live="polite"></div>
-</body></html>
+<script src="platform-api.js" defer></script>\n</body></html>

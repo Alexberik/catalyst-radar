@@ -1,6 +1,6 @@
 (() => {
 "use strict";
-const API="https://catalyst-radar-api-alex-c628.vercel.app";
+const API="https://catalyst-radar-api.vercel.app";
 const $=id=>document.getElementById(id),state={view:"scanner",loading:false};
 const esc=v=>String(v??"—").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const fmt=(v,d=2)=>v==null||!Number.isFinite(Number(v))?"—":Number(v).toLocaleString(undefined,{maximumFractionDigits:d});

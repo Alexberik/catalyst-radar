@@ -14,8 +14,6 @@
 </head>
 <body>
 <div class="ambient" aria-hidden="true"></div>
-
-<!-- TOP BAR -->
 <header class="topbar">
   <a class="brand" href="#top">
     <span class="brand-mark"></span>
@@ -27,10 +25,11 @@
   <nav class="nav">
     <a href="#overview">Pulse</a>
     <a href="#discovery">Discovery</a>
+    <a href="#listings-watch">Listings</a>
+    <a href="#equities-tab">Equities</a>
     <a href="#majors">Core</a>
     <a href="#geopolitics">Events</a>
     <a href="#sources">Sources</a>
-    <a href="#paper">Paper</a>
   </nav>
   <div class="top-actions">
     <span class="live-pill"><i></i> LIVE</span>
@@ -38,10 +37,7 @@
     <button id="lang-btn" class="lang-btn">RU / EN</button>
   </div>
 </header>
-
 <main id="top">
-
-<!-- HERO -->
 <section class="hero">
   <div class="hero-inner">
     <div class="hero-copy">
@@ -64,10 +60,18 @@
           <span>RADAR STATUS</span>
           <time id="clock">--:-- UTC</time>
         </div>
-        <div class="radar-visual">
-          <div class="radar-ring"></div>
-          <div class="radar-ring delay"></div>
-          <div class="radar-core">CR</div>
+        <div class="radar-visual ship-radar" id="ship-radar" aria-hidden="true">
+          <div class="radar-face">
+            <div class="radar-grid"></div>
+            <div class="radar-sweep"></div>
+            <span class="blip b1"></span>
+            <span class="blip b2"></span>
+            <span class="blip b3"></span>
+            <span class="blip b4"></span>
+            <span class="blip b5"></span>
+            <span class="blip b6"></span>
+            <div class="radar-core">CR</div>
+          </div>
         </div>
         <div class="status-stats">
           <div><strong id="stat-candidates">—</strong><span>CANDIDATES</span></div>
@@ -78,13 +82,8 @@
     </aside>
   </div>
 </section>
-
-<!-- LIVE FEED HEALTH -->
 <section class="section feed-health">
-  <div class="section-head">
-    <span class="section-num">00</span>
-    <h2>Live Feed Health</h2>
-  </div>
+  <div class="section-head"><span class="section-num">00</span><h2>Live Feed Health</h2></div>
   <div class="health-grid" id="live-feed-health">
     <div class="health-item"><span class="h-dot green"></span><div><strong>DEXSCREENER</strong><small>PUBLIC · DEX</small></div></div>
     <div class="health-item"><span class="h-dot green"></span><div><strong>GECKOTERMINAL</strong><small>PUBLIC · POOLS</small></div></div>
@@ -92,42 +91,24 @@
     <div class="health-item"><span class="h-dot muted"></span><div><strong>LISTINGS / SOCIAL</strong><small>LINKED</small></div></div>
   </div>
 </section>
-
-<!-- OVERVIEW / MARKET PULSE -->
 <section class="section" id="overview">
-  <div class="section-head">
-    <span class="section-num">01</span>
-    <h2>Market Pulse</h2>
-    <p class="section-desc">Визуальная сводка только по активам, которые реально вернули данные.</p>
-  </div>
-
+  <div class="section-head"><span class="section-num">01</span><h2>Market Pulse</h2>
+    <p class="section-desc">Визуальная сводка только по активам, которые реально вернули данные.</p></div>
   <div class="pulse-grid">
     <div class="card chart-card">
       <div class="card-head"><span>01 · Импульс 24ч</span><span class="mono">% / 24H</span></div>
-      <div class="chart-area" id="momentum-chart">
-        <div class="empty-state">Ожидаем рыночные данные…</div>
-      </div>
-      <div class="legend">
-        <span><i class="g"></i> Рост</span>
-        <span><i class="r"></i> Падение</span>
-      </div>
+      <div class="chart-area" id="momentum-chart"><div class="empty-state">Ожидаем рыночные данные…</div></div>
+      <div class="legend"><span><i class="g"></i> Рост</span><span><i class="r"></i> Падение</span></div>
     </div>
-
     <div class="card chart-card">
       <div class="card-head"><span>02 · Риск-флаги</span><span class="mono">FLAGS</span></div>
-      <div class="chart-area" id="risk-chart">
-        <div class="empty-state">Ожидаем данные…</div>
-      </div>
+      <div class="chart-area" id="risk-chart"><div class="empty-state">Ожидаем данные…</div></div>
     </div>
-
     <div class="card chart-card wide">
       <div class="card-head"><span>03 · Ликвидность vs объём</span><span class="mono">USD</span></div>
-      <div class="chart-area scatter" id="liq-vol-chart">
-        <div class="empty-state">Ожидаем данные…</div>
-      </div>
+      <div class="chart-area scatter" id="liq-vol-chart"><div class="empty-state">Ожидаем данные…</div></div>
       <p class="note">Высокий объём при низкой ликвидности может указывать на волатильность или манипуляции. Это не сигнал покупки.</p>
     </div>
-
     <div class="card pipeline-card">
       <div class="card-head"><span>04 · Путь сигнала</span><span class="mono">PIPELINE</span></div>
       <div class="pipeline">
@@ -144,180 +125,89 @@
     </div>
   </div>
 </section>
-
-<!-- EARLY DISCOVERY -->
 <section class="section" id="discovery">
-  <div class="section-head">
-    <span class="section-num">02</span>
-    <h2>Early Discovery</h2>
-    <p class="section-desc">Новые пулы и активность DEX. Сортировка помогает находить кандидатов — не прогноз доходности.</p>
-  </div>
-
+  <div class="section-head"><span class="section-num">02</span><h2>Early Discovery</h2>
+    <p class="section-desc">Новые пулы и активность DEX. Сортировка помогает находить кандидатов — не прогноз доходности.</p></div>
   <div class="toolbar">
     <div class="filters" id="discovery-filters">
-      <button class="chip active" data-filter="all">All</button>
-      <button class="chip" data-filter="new">New pools</button>
-      <button class="chip" data-filter="meme">Meme</button>
-      <button class="chip" data-filter="boosted">Boosted</button>
-      <button class="chip" data-filter="risk">High risk</button>
+      <button class="chip active" data-filter="all" type="button">All</button>
+      <button class="chip" data-filter="new" type="button">New pools</button>
+      <button class="chip" data-filter="meme" type="button">Meme</button>
+      <button class="chip" data-filter="potential" type="button">Potential</button>
+      <button class="chip" data-filter="boosted" type="button">Boosted</button>
+      <button class="chip" data-filter="risk" type="button">High risk</button>
     </div>
     <div class="toolbar-right">
       <span class="mono" id="discovery-count">0 candidates</span>
       <button class="btn btn-ghost sm" id="export-csv">Export CSV ↗</button>
     </div>
   </div>
-
   <div class="table-wrap">
     <table class="data-table" id="discovery-table">
-      <thead>
-        <tr>
-          <th>ASSET / CHAIN</th>
-          <th>PRICE</th>
-          <th>1H / 24H</th>
-          <th>LIQUIDITY</th>
-          <th>24H VOL</th>
-          <th>RISK</th>
-          <th>SCENARIO $1</th>
-        </tr>
-      </thead>
+      <thead><tr>
+          <th>ASSET / CHAIN</th><th>PRICE</th><th>1H / 24H</th><th>LIQUIDITY</th><th>24H VOL</th><th>RISK</th><th>$1 → ?</th>
+      </tr></thead>
       <tbody id="discovery-body">
         <tr><td colspan="7" class="loading-row">Loading on-chain discovery feeds…</td></tr>
       </tbody>
     </table>
   </div>
-  <p class="note">Сценарий $1 показывает, сколько стоил бы $1 при повторении 24ч-движения. Это математика по прошлому, <strong>не прогноз</strong>.</p>
+  <p class="note">Колонка <strong>$1 → ?</strong> — математический сценарий: если 24ч-движение повторится. Это <strong>не прогноз и не совет</strong>.</p>
 </section>
-
-<!-- CORE MARKET -->
 <section class="section" id="majors">
-  <div class="section-head">
-    <span class="section-num">03</span>
-    <h2>Core Market</h2>
-    <p class="section-desc">BTC, ETH и крупные активы. Публичные котировки и свечи.</p>
-  </div>
-
+  <div class="section-head"><span class="section-num">03</span><h2>Core Market</h2>
+    <p class="section-desc">BTC, ETH и крупные активы. Публичные котировки.</p></div>
   <div class="majors-grid">
     <div class="card chart-card wide">
-      <div class="card-head">
-        <span>BTC / USDT · Hourly</span>
-        <div class="interval-tabs">
-          <button class="chip active" data-interval="1h">1H</button>
-          <button class="chip" data-interval="4h">4H</button>
-          <button class="chip" data-interval="1d">1D</button>
-        </div>
-      </div>
-      <div class="chart-area candles" id="btc-candles">
-        <div class="empty-state">Ожидаем свечные данные…</div>
-      </div>
+      <div class="card-head"><span>Core · 24h change</span><span class="mono">MAJORS</span></div>
+      <div class="chart-area" id="majors-change-chart"><div class="empty-state">Ожидаем котировки…</div></div>
     </div>
-
     <div class="card">
       <div class="card-head"><span>Market Breadth</span><span class="mono">ADV / DEC</span></div>
-      <div class="chart-area" id="breadth-chart">
-        <div class="empty-state">Ожидаем котировки…</div>
-      </div>
+      <div class="chart-area" id="breadth-chart"><div class="empty-state">Ожидаем котировки…</div></div>
     </div>
-
     <div class="card">
       <div class="card-head"><span>24H Volume</span><span class="mono">USDT</span></div>
-      <div class="chart-area" id="volume-chart">
-        <div class="empty-state">Ожидаем объёмы…</div>
-      </div>
+      <div class="chart-area" id="volume-chart"><div class="empty-state">Ожидаем объёмы…</div></div>
     </div>
   </div>
 </section>
-
-<!-- LISTINGS + RUMORS (Coming soon) -->
-<section class="section" id="listings">
-  <div class="section-head">
-    <span class="section-num">04</span>
-    <h2>Listing Intelligence</h2>
-    <p class="section-desc">До листинга — а не после. Официальные источники vs слухи.</p>
-  </div>
+<section class="section" id="listings-watch">
+  <div class="section-head"><span class="section-num">03B</span><h2>Listing Watch</h2>
+    <p class="section-desc">Монеты и мемкоины с ранними сигналами подготовки к листингу. Не подтверждение — повод проверить.</p></div>
   <div class="coming-grid">
-    <div class="coming-card">
-      <span class="coming-label">OFFICIAL</span>
-      <h3>Биржевые объявления</h3>
-      <p>Новые пары, launchpad, deposit notices.</p>
-      <div class="coming-badge">Coming soon</div>
-    </div>
-    <div class="coming-card">
-      <span class="coming-label">ON-CHAIN</span>
-      <h3>Подготовка к запуску</h3>
-      <p>Свежие пулы, рост ликвидности, активность.</p>
-      <div class="coming-badge">Coming soon</div>
-    </div>
-    <div class="coming-card">
-      <span class="coming-label">UNVERIFIED</span>
-      <h3>Ранние упоминания</h3>
-      <p>Сообщество и слухи — только повод для проверки.</p>
-      <div class="coming-badge">Coming soon</div>
-    </div>
+    <div class="coming-card"><span class="coming-label">ON-CHAIN</span><h3>Свежие пулы + рост ликвидности</h3><p>Новые пары с растущим резервом — косвенный сигнал перед возможным листингом.</p><div class="coming-badge">Live via Discovery · Potential</div></div>
+    <div class="coming-card"><span class="coming-label">CALENDAR</span><h3>Community listing claims</h3><p>Упоминания launchpad / listing date из публичных календарей. Требуют сверки с биржей.</p><div class="coming-badge">Coming soon</div></div>
+    <div class="coming-card"><span class="coming-label">OFFICIAL</span><h3>Биржевые анонсы</h3><p>Только primary source: deposit / trading pair notices.</p><div class="coming-badge">Coming soon</div></div>
   </div>
 </section>
-
-<!-- RUMOR DESK -->
-<section class="section" id="rumors">
-  <div class="section-head">
-    <span class="section-num">05</span>
-    <h2>Intelligence Desk</h2>
-    <p class="section-desc">Публичные новости с указанием издателя и ссылкой.</p>
-  </div>
-  <div class="card coming-block">
-    <div class="coming-inner">
-      <div class="coming-badge large">Coming soon</div>
-      <p>GDELT + CryptoPanic интеграция в работе. Пока используйте внешние источники.</p>
-    </div>
-  </div>
-</section>
-
-<!-- EQUITIES + GEOPOLITICS -->
-<section class="section" id="geopolitics">
-  <div class="section-head">
-    <span class="section-num">06</span>
-    <h2>Event Radar · War & Rebuild</h2>
-    <p class="section-desc">Акции, чувствительные к оборонным бюджетам, санкциям и восстановлению. Список наблюдения, не рекомендация.</p>
-  </div>
-
+<section class="section" id="equities-tab">
+  <div class="section-head"><span class="section-num">03C</span><h2>Equities & Securities</h2>
+    <p class="section-desc">Малые компании, IPO, регуляторные и корпоративные катализаторы. Цены — только после лицензированного feed.</p></div>
   <div class="event-grid">
-    <div class="card">
-      <div class="card-head"><span>DEFENCE & AEROSPACE</span><span class="tag amber">HIGH</span></div>
-      <p class="card-body">Контракты, бюджеты, пополнение запасов.</p>
-      <div class="ticker-row">
-        <a href="https://finance.yahoo.com/quote/RTX/" target="_blank" rel="noopener">RTX</a>
-        <a href="https://finance.yahoo.com/quote/LMT/" target="_blank" rel="noopener">LMT</a>
-        <a href="https://finance.yahoo.com/quote/NOC/" target="_blank" rel="noopener">NOC</a>
-        <a href="https://finance.yahoo.com/quote/RHM.DE/" target="_blank" rel="noopener">RHM.DE</a>
-        <a href="https://finance.yahoo.com/quote/BA.L/" target="_blank" rel="noopener">BA.L</a>
-      </div>
-    </div>
-    <div class="card">
-      <div class="card-head"><span>RECONSTRUCTION</span><span class="tag muted">CONDITIONAL</span></div>
-      <p class="card-body">Цемент, техника, сталь — только при подтверждённом финансировании.</p>
-      <div class="ticker-row">
-        <a href="https://finance.yahoo.com/quote/CAT/" target="_blank" rel="noopener">CAT</a>
-        <a href="https://finance.yahoo.com/quote/URI/" target="_blank" rel="noopener">URI</a>
-        <a href="https://finance.yahoo.com/quote/CRH/" target="_blank" rel="noopener">CRH</a>
-        <a href="https://finance.yahoo.com/quote/MT/" target="_blank" rel="noopener">MT</a>
-      </div>
-    </div>
+    <div class="card"><div class="card-head"><span>IPO / FILINGS</span><span class="tag muted">PRIMARY</span></div><p class="card-body">S-1 / F-1, lock-up, новые размещения.</p><div class="ticker-row"><a href="https://www.sec.gov/edgar/search/" target="_blank" rel="noopener">SEC EDGAR ↗</a><a href="https://www.nasdaq.com/market-activity/ipos" target="_blank" rel="noopener">Nasdaq IPO ↗</a></div></div>
+    <div class="card"><div class="card-head"><span>BIOTECH / FDA</span><span class="tag muted">EVENT</span></div><p class="card-body">Клинические результаты и регуляторные решения.</p><div class="ticker-row"><a href="https://www.fda.gov/news-events/press-announcements" target="_blank" rel="noopener">FDA ↗</a><a href="https://clinicaltrials.gov/" target="_blank" rel="noopener">ClinicalTrials ↗</a></div></div>
   </div>
-  <div class="card coming-block" style="margin-top:16px">
-    <div class="coming-inner">
-      <div class="coming-badge large">Coming soon</div>
-      <p>Live equity quotes и геополитические заголовки появятся после подключения лицензированного feed.</p>
-    </div>
+  <div class="card coming-block" style="margin-top:16px"><div class="coming-inner"><div class="coming-badge large">Coming soon</div><p>Live quotes по акциям появятся после подключения licensed stock feed.</p></div></div>
+</section>
+<section class="section" id="listings">
+  <div class="section-head"><span class="section-num">04</span><h2>Listing Intelligence</h2><p class="section-desc">До листинга — а не после.</p></div>
+  <div class="coming-grid">
+    <div class="coming-card"><span class="coming-label">OFFICIAL</span><h3>Биржевые объявления</h3><p>Новые пары, launchpad, deposit notices.</p><div class="coming-badge">Coming soon</div></div>
+    <div class="coming-card"><span class="coming-label">ON-CHAIN</span><h3>Подготовка к запуску</h3><p>Свежие пулы, рост ликвидности.</p><div class="coming-badge">Coming soon</div></div>
+    <div class="coming-card"><span class="coming-label">UNVERIFIED</span><h3>Ранние упоминания</h3><p>Сообщество и слухи — только повод для проверки.</p><div class="coming-badge">Coming soon</div></div>
   </div>
 </section>
-
-<!-- SOURCES -->
-<section class="section" id="sources">
-  <div class="section-head">
-    <span class="section-num">07</span>
-    <h2>Source Map</h2>
-    <p class="section-desc">Каждый поток имеет тип, свежесть и статус. Много источников ≠ много правды.</p>
+<section class="section" id="geopolitics">
+  <div class="section-head"><span class="section-num">06</span><h2>Event Radar · War & Rebuild</h2>
+    <p class="section-desc">Акции, чувствительные к оборонным бюджетам и восстановлению. Список наблюдения, не рекомендация.</p></div>
+  <div class="event-grid">
+    <div class="card"><div class="card-head"><span>DEFENCE & AEROSPACE</span><span class="tag amber">HIGH</span></div><p class="card-body">Контракты, бюджеты, пополнение запасов.</p><div class="ticker-row"><a href="https://finance.yahoo.com/quote/RTX/" target="_blank" rel="noopener">RTX</a><a href="https://finance.yahoo.com/quote/LMT/" target="_blank" rel="noopener">LMT</a><a href="https://finance.yahoo.com/quote/NOC/" target="_blank" rel="noopener">NOC</a><a href="https://finance.yahoo.com/quote/RHM.DE/" target="_blank" rel="noopener">RHM.DE</a></div></div>
+    <div class="card"><div class="card-head"><span>RECONSTRUCTION</span><span class="tag muted">CONDITIONAL</span></div><p class="card-body">Цемент, техника, сталь — только при подтверждённом финансировании.</p><div class="ticker-row"><a href="https://finance.yahoo.com/quote/CAT/" target="_blank" rel="noopener">CAT</a><a href="https://finance.yahoo.com/quote/URI/" target="_blank" rel="noopener">URI</a><a href="https://finance.yahoo.com/quote/CRH/" target="_blank" rel="noopener">CRH</a><a href="https://finance.yahoo.com/quote/MT/" target="_blank" rel="noopener">MT</a></div></div>
   </div>
-
+</section>
+<section class="section" id="sources">
+  <div class="section-head"><span class="section-num">07</span><h2>Source Map</h2><p class="section-desc">Каждый поток имеет тип, свежесть и статус.</p></div>
   <div class="sources-table">
     <div class="src-row"><span class="src-name">DEX Screener</span><span class="src-type">PUBLIC API</span><span class="src-status live">LIVE</span></div>
     <div class="src-row"><span class="src-name">GeckoTerminal</span><span class="src-type">PUBLIC API</span><span class="src-status live">LIVE</span></div>
@@ -327,51 +217,12 @@
     <div class="src-row"><span class="src-name">Equity price feed</span><span class="src-type">LICENSED</span><span class="src-status muted">NEEDED</span></div>
   </div>
 </section>
-
-<!-- PAPER LAB -->
-<section class="section" id="paper">
-  <div class="section-head">
-    <span class="section-num">08</span>
-    <h2>Paper Lab</h2>
-    <p class="section-desc">Виртуальный счёт $100. Симуляция, не реальная торговля.</p>
-  </div>
-  <div class="card coming-block">
-    <div class="coming-inner">
-      <div class="coming-badge large">Coming soon</div>
-      <p>Paper trading workspace в разработке. История снимков уже собирается через GitHub Actions.</p>
-    </div>
-  </div>
-</section>
-
 </main>
-
 <footer class="footer">
   <div class="footer-inner">
-    <div class="footer-brand">
-      <strong>CATALYST RADAR</strong>
-      <span>Research & simulation only · Not investment advice</span>
-    </div>
-    <div class="footer-meta mono">
-      <a href="https://github.com/Alexberik/catalyst-radar" target="_blank" rel="noopener">GitHub ↗</a>
-      <span>·</span>
-      <span>v0.3 · rebrand</span>
-    </div>
+    <div class="footer-brand"><strong>CATALYST RADAR</strong><span>Research & simulation only · Not investment advice</span></div>
+    <div class="footer-meta mono"><a href="https://github.com/Alexberik/catalyst-radar" target="_blank" rel="noopener">GitHub ↗</a><span>·</span><span>v0.4 · filters + radar</span></div>
   </div>
 </footer>
-
-<script>
-// Minimal clock + placeholder hooks so existing app.js can enhance
-(function(){
-  function tick(){
-    const el = document.getElementById('clock');
-    if(el){
-      const d = new Date();
-      el.textContent = d.toISOString().slice(11,16) + ' UTC';
-    }
-  }
-  tick();
-  setInterval(tick, 30000);
-})();
-</script>
 </body>
 </html>

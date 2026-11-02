@@ -3,215 +3,457 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>MAGIC Trading Assistant — Fractyco Demo</title>
-<meta name="description" content="Live portfolio snapshot and rotation plan for Fractyco Demo Trading Sprint">
-<meta name="theme-color" content="#071018">
+<title>MAGIC · Fractyco Dashboard</title>
+<meta name="theme-color" content="#0b1120">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <style>
-:root{--bg:#070d13;--panel:#101a23;--panel2:#14222d;--line:#29404d;--txt:#f2f6f5;--muted:#aab9bd;--teal:#43e0cb;--gold:#e8bd73;--red:#ff6b68;--green:#53d69b;--amber:#ffbd69}
-*{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at 80% -10%,#173b42 0,transparent 38%),var(--bg);color:var(--txt);font:14px/1.55 Inter,Arial,sans-serif}a{color:var(--teal);text-decoration:none}
-.top{display:flex;justify-content:space-between;align-items:center;gap:16px;padding:16px max(22px,calc((100vw - 1240px)/2));border-bottom:1px solid var(--line);background:#071018ed;position:sticky;top:0;z-index:5;backdrop-filter:blur(14px)}
-.brand{font-weight:800;letter-spacing:2px}.brand small{display:block;color:var(--gold);font:10px 'JetBrains Mono';letter-spacing:1.5px}
-.wrap{max-width:1240px;margin:auto;padding:24px}
-.hero{padding:20px 0 10px}.eyebrow{font:11px 'JetBrains Mono';letter-spacing:1.3px;color:var(--teal)}
-h1{font-size:clamp(28px,4.5vw,42px);line-height:1.1;margin:8px 0}h1 em{font-style:normal;color:var(--gold)}
-.lead{color:var(--muted);max-width:820px}
-.pill{border:1px solid #32665f;border-radius:30px;padding:7px 12px;color:var(--teal);font:10px 'JetBrains Mono';display:inline-block}
-.panel{background:linear-gradient(145deg,#14232d,#0d1720);border:1px solid var(--line);border-radius:14px;padding:20px;margin-bottom:16px}
-.panel h2{font-size:18px;margin:4px 0 12px}.kicker{font:11px 'JetBrains Mono';letter-spacing:1.2px;color:var(--teal);margin-bottom:4px}
-.muted{color:var(--muted)}
-.metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:14px 0}
-.metric{background:#09151d;border:1px solid var(--line);border-radius:10px;padding:14px}
-.metric small{display:block;color:var(--muted);font-size:11px}
-.metric b{font-size:22px;display:block;margin-top:6px}
-.metric .sub{font-size:12px;color:var(--muted);margin-top:2px}
-.good{color:var(--green)}.bad{color:var(--red)}.warn{color:var(--amber)}
-table{width:100%;border-collapse:collapse;font-size:13px;margin-top:8px}
-th,td{padding:10px 8px;text-align:left;border-bottom:1px solid var(--line)}
-th{color:var(--muted);font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.4px}
-.tag{display:inline-block;padding:3px 8px;border-radius:20px;font-size:11px;font-weight:600}
-.tag.hold{background:#1a3a2f;color:var(--green)}.tag.watch{background:#3a2f1a;color:var(--amber)}.tag.strong{background:#0d2f2a;color:var(--teal)}
-.plan{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:12px}
-.plan-box{background:#09151d;border:1px solid var(--line);border-radius:10px;padding:14px}
-.plan-box h3{margin:0 0 8px;font-size:15px}
-.plan-box ul{margin:0;padding-left:18px;color:var(--muted)}
-.plan-box li{margin-bottom:6px}
-.note{font-size:12px;color:#c7c5b6;border-left:3px solid var(--gold);padding:10px 12px;background:#e8bd730d;margin-top:14px;border-radius:0 8px 8px 0}
-footer{text-align:center;color:#80949b;font-size:11px;padding:28px 0 40px}
-@media(max-width:900px){.metrics{grid-template-columns:1fr 1fr}.plan{grid-template-columns:1fr}}
-@media(max-width:520px){.metrics{grid-template-columns:1fr}}
+:root {
+  --bg: #0b1120;
+  --sidebar: #0f172a;
+  --card: #111827;
+  --card2: #1e293b;
+  --border: #1e293b;
+  --text: #f1f5f9;
+  --muted: #94a3b8;
+  --teal: #2dd4bf;
+  --green: #34d399;
+  --red: #f87171;
+  --amber: #fbbf24;
+  --blue: #60a5fa;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: Inter, system-ui, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  display: flex;
+}
+/* SIDEBAR */
+.sidebar {
+  width: 220px;
+  background: var(--sidebar);
+  border-right: 1px solid var(--border);
+  padding: 20px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex-shrink: 0;
+}
+.logo {
+  font-weight: 800;
+  font-size: 15px;
+  letter-spacing: 1px;
+  padding: 8px 10px 20px;
+  color: var(--teal);
+}
+.logo span { color: var(--text); }
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  color: var(--muted);
+  font-size: 13px;
+  cursor: pointer;
+  transition: .15s;
+}
+.nav-item:hover, .nav-item.active {
+  background: #1e293b;
+  color: var(--text);
+}
+.nav-item.active { color: var(--teal); }
+/* MAIN */
+.main {
+  flex: 1;
+  padding: 20px 24px;
+  overflow-x: hidden;
+}
+.topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 22px;
+}
+.topbar h1 {
+  font-size: 20px;
+  font-weight: 700;
+}
+.topbar .badge {
+  font-size: 11px;
+  background: #134e4a;
+  color: var(--teal);
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-weight: 600;
+}
+/* GRID */
+.grid-top {
+  display: grid;
+  grid-template-columns: 1.6fr 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+.card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 18px;
+}
+.card-title {
+  font-size: 12px;
+  color: var(--muted);
+  font-weight: 500;
+  margin-bottom: 12px;
+  text-transform: uppercase;
+  letter-spacing: .5px;
+}
+.big-value {
+  font-size: 28px;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+.change {
+  font-size: 13px;
+  font-weight: 600;
+}
+.change.up { color: var(--green); }
+.change.down { color: var(--red); }
+/* CHART */
+.chart-wrap {
+  height: 180px;
+  position: relative;
+}
+/* ALLOCATION */
+.alloc-wrap {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.alloc-legend {
+  flex: 1;
+  font-size: 12px;
+}
+.alloc-item {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 6px;
+  color: var(--muted);
+}
+.alloc-item span:last-child { color: var(--text); font-weight: 600; }
+/* TOP HOLDINGS */
+.holding-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 0;
+  border-bottom: 1px solid #1e293b;
+  font-size: 13px;
+}
+.holding-row:last-child { border-bottom: none; }
+.holding-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+/* BOTTOM GRID */
+.grid-bottom {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr;
+  gap: 16px;
+}
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+th {
+  text-align: left;
+  color: var(--muted);
+  font-weight: 500;
+  font-size: 11px;
+  text-transform: uppercase;
+  padding: 8px 6px;
+  border-bottom: 1px solid var(--border);
+}
+td {
+  padding: 11px 6px;
+  border-bottom: 1px solid #1e293b;
+}
+.tag {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 3px 8px;
+  border-radius: 20px;
+}
+.tag.strong { background: #134e4a; color: var(--teal); }
+.tag.hold { background: #14532d; color: var(--green); }
+.tag.watch { background: #422006; color: var(--amber); }
+.plan-box {
+  background: #0f172a;
+  border-radius: 10px;
+  padding: 14px;
+  margin-bottom: 12px;
+}
+.plan-box h4 {
+  font-size: 13px;
+  margin-bottom: 8px;
+}
+.plan-box ul {
+  padding-left: 16px;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.6;
+}
+@media (max-width: 1100px) {
+  .grid-top, .grid-bottom { grid-template-columns: 1fr; }
+  .sidebar { display: none; }
+}
 </style>
 </head>
 <body>
-<header class="top">
-  <div class="brand">MAGIC <span style="color:var(--teal)">TRADING ASSISTANT</span>
-    <small>FRACTYCO DEMO · LIVE SNAPSHOT</small>
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+  <div class="logo">MAGIC <span>FRACTYCO</span></div>
+  <div class="nav-item active">Dashboard</div>
+  <div class="nav-item">Portfolio</div>
+  <div class="nav-item">Projects</div>
+  <div class="nav-item">Leaderboard</div>
+  <div class="nav-item">Wallet</div>
+  <div style="flex:1"></div>
+  <div class="nav-item" style="font-size:11px;color:#64748b">Demo only · No real money</div>
+</aside>
+
+<!-- MAIN -->
+<div class="main">
+  <div class="topbar">
+    <div>
+      <h1>Demo Trading Sprint · Quarter 3</h1>
+      <div style="font-size:12px;color:var(--muted);margin-top:2px">Alex B. · Live snapshot</div>
+    </div>
+    <div class="badge">RANK #51</div>
   </div>
-  <a href="./index.html">← Catalyst Radar</a>
-</header>
 
-<main class="wrap">
-  <section class="hero">
-    <div class="eyebrow">01 / CURRENT SNAPSHOT · QUARTER 3</div>
-    <h1>Portfolio status<br><em>Rank #51</em></h1>
-    <p class="lead">Данные обновлены по последним скриншотам. Ротация в импульсные проекты выполнена. Свободных средств почти нет — ждём движения сильных позиций.</p>
-    <span class="pill">NO REAL-MONEY EXECUTION · DEMO ONLY</span>
-  </section>
-
-  <!-- KEY METRICS -->
-  <section class="panel">
-    <div class="kicker">02 / KEY METRICS</div>
-    <h2>Текущие показатели</h2>
-    <div class="metrics">
-      <div class="metric">
-        <small>СТОИМОСТЬ ПОРТФЕЛЯ</small>
-        <b>S$ 103 305</b>
-        <div class="sub good">+3.31% от старта</div>
-      </div>
-      <div class="metric">
-        <small>СВОБОДНЫЕ СРЕДСТВА</small>
-        <b>S$ 375</b>
-        <div class="sub">почти 0</div>
-      </div>
-      <div class="metric">
-        <small>МЕСТО В РЕЙТИНГЕ</small>
-        <b class="warn">#51</b>
-        <div class="sub">из ~79</div>
-      </div>
-      <div class="metric">
-        <small>НЕРЕАЛИЗОВАННЫЙ PnL</small>
-        <b class="good">S$ 7 621</b>
-        <div class="sub">комиссии S$ 613</div>
+  <!-- TOP CARDS -->
+  <div class="grid-top">
+    <!-- Portfolio Value + Chart -->
+    <div class="card">
+      <div class="card-title">Portfolio Value</div>
+      <div class="big-value">S$ 103,305</div>
+      <div class="change up">+S$ 3,305 (+3.31%) from start</div>
+      <div class="chart-wrap" style="margin-top:16px">
+        <canvas id="equityChart"></canvas>
       </div>
     </div>
-    <div class="note">Разрыв до топ-3 (примерно +10.5%) составляет около 7–7.5 процентных пунктов. Нужен рост портфеля ещё на ~S$ 7 000–8 000.</div>
-  </section>
 
-  <!-- PORTFOLIO TABLE -->
-  <section class="panel">
-    <div class="kicker">03 / CURRENT HOLDINGS</div>
-    <h2>Открытые позиции</h2>
-    <table>
-      <thead>
-        <tr>
-          <th>Проект</th>
-          <th>Кол-во</th>
-          <th>Цена</th>
-          <th>Стоимость</th>
-          <th>День</th>
-          <th>Доля</th>
-          <th>Статус</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td><strong>Shida Sunfield</strong></td>
-          <td>19 801</td>
-          <td>1.01</td>
-          <td>19 933.79</td>
-          <td class="good">+2.66%</td>
-          <td>19.3%</td>
-          <td><span class="tag hold">Держать</span></td>
-        </tr>
-        <tr>
-          <td><strong>West Orchard Hazelnuts</strong></td>
-          <td>19 732</td>
-          <td>1.01</td>
-          <td>19 594.23</td>
-          <td>−0.06%</td>
-          <td>19.0%</td>
-          <td><span class="tag watch">Следить</span></td>
-        </tr>
-        <tr>
-          <td><strong>Steel Yard Workshops</strong></td>
-          <td>17 645</td>
-          <td>1.04</td>
-          <td>18 225.77</td>
-          <td>−0.29%</td>
-          <td>17.6%</td>
-          <td><span class="tag watch">Следить</span></td>
-        </tr>
-        <tr>
-          <td><strong>East Roof Solar Pool</strong></td>
-          <td>15 000</td>
-          <td>1.09</td>
-          <td>16 424.28</td>
-          <td class="good">+3.85%</td>
-          <td>15.9%</td>
-          <td><span class="tag strong">Сильный</span></td>
-        </tr>
-        <tr>
-          <td><strong>Urban Signal Rooftops</strong></td>
-          <td>15 000</td>
-          <td>1.07</td>
-          <td>16 121.24</td>
-          <td class="good">+4.95%</td>
-          <td>15.6%</td>
-          <td><span class="tag strong">Сильный</span></td>
-        </tr>
-        <tr>
-          <td><strong>North Grid Battery</strong></td>
-          <td>10 000</td>
-          <td>1.12</td>
-          <td>11 209.67</td>
-          <td class="good">+3.82%</td>
-          <td>10.9%</td>
-          <td><span class="tag strong">Сильный</span></td>
-        </tr>
-        <tr>
-          <td><strong>Lisi Vertical Greens</strong></td>
-          <td>1 415</td>
-          <td>1.01</td>
-          <td>1 421.22</td>
-          <td class="good">+0.77%</td>
-          <td>1.4%</td>
-          <td><span class="tag hold">Мелочь</span></td>
-        </tr>
-      </tbody>
-    </table>
-  </section>
+    <!-- Asset Allocation -->
+    <div class="card">
+      <div class="card-title">Asset Allocation</div>
+      <div class="alloc-wrap">
+        <div style="width:120px;height:120px">
+          <canvas id="allocChart"></canvas>
+        </div>
+        <div class="alloc-legend">
+          <div class="alloc-item"><span>Shida Sunfield</span><span>19.3%</span></div>
+          <div class="alloc-item"><span>West Orchard</span><span>19.0%</span></div>
+          <div class="alloc-item"><span>Steel Yard</span><span>17.6%</span></div>
+          <div class="alloc-item"><span>East Roof Solar</span><span>15.9%</span></div>
+          <div class="alloc-item"><span>Urban Signal</span><span>15.6%</span></div>
+          <div class="alloc-item"><span>North Grid</span><span>10.9%</span></div>
+          <div class="alloc-item"><span>Lisi Vertical</span><span>1.4%</span></div>
+        </div>
+      </div>
+    </div>
 
-  <!-- ACTION PLAN -->
-  <section class="panel">
-    <div class="kicker">04 / ACTION PLAN</div>
-    <h2>Что делать дальше</h2>
-    <div class="plan">
+    <!-- Top Holdings / Key Stats -->
+    <div class="card">
+      <div class="card-title">Key Stats</div>
+      <div class="holding-row">
+        <div class="holding-left"><div class="dot" style="background:var(--teal)"></div> Free Cash</div>
+        <div>S$ 375</div>
+      </div>
+      <div class="holding-row">
+        <div class="holding-left"><div class="dot" style="background:var(--green)"></div> Unrealized PnL</div>
+        <div class="up" style="color:var(--green)">S$ 7,621</div>
+      </div>
+      <div class="holding-row">
+        <div class="holding-left"><div class="dot" style="background:var(--amber)"></div> Commissions</div>
+        <div>S$ 613</div>
+      </div>
+      <div class="holding-row">
+        <div class="holding-left"><div class="dot" style="background:var(--red)"></div> Gap to Top-3</div>
+        <div style="color:var(--amber)">~7.2%</div>
+      </div>
+      <div class="holding-row">
+        <div class="holding-left"><div class="dot" style="background:var(--blue)"></div> Rank</div>
+        <div style="font-weight:700">#51 / ~79</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- BOTTOM -->
+  <div class="grid-bottom">
+    <!-- Holdings Table -->
+    <div class="card">
+      <div class="card-title">Current Holdings</div>
+      <table>
+        <thead>
+          <tr>
+            <th>Project</th>
+            <th>Value</th>
+            <th>Day</th>
+            <th>Weight</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Shida Sunfield</strong></td>
+            <td>S$ 19,934</td>
+            <td style="color:var(--green)">+2.66%</td>
+            <td>19.3%</td>
+            <td><span class="tag hold">Hold</span></td>
+          </tr>
+          <tr>
+            <td><strong>West Orchard Hazelnuts</strong></td>
+            <td>S$ 19,594</td>
+            <td>−0.06%</td>
+            <td>19.0%</td>
+            <td><span class="tag watch">Watch</span></td>
+          </tr>
+          <tr>
+            <td><strong>Steel Yard Workshops</strong></td>
+            <td>S$ 18,226</td>
+            <td>−0.29%</td>
+            <td>17.6%</td>
+            <td><span class="tag watch">Watch</span></td>
+          </tr>
+          <tr>
+            <td><strong>East Roof Solar Pool</strong></td>
+            <td>S$ 16,424</td>
+            <td style="color:var(--green)">+3.85%</td>
+            <td>15.9%</td>
+            <td><span class="tag strong">Strong</span></td>
+          </tr>
+          <tr>
+            <td><strong>Urban Signal Rooftops</strong></td>
+            <td>S$ 16,121</td>
+            <td style="color:var(--green)">+4.95%</td>
+            <td>15.6%</td>
+            <td><span class="tag strong">Strong</span></td>
+          </tr>
+          <tr>
+            <td><strong>North Grid Battery</strong></td>
+            <td>S$ 11,210</td>
+            <td style="color:var(--green)">+3.82%</td>
+            <td>10.9%</td>
+            <td><span class="tag strong">Strong</span></td>
+          </tr>
+          <tr>
+            <td><strong>Lisi Vertical Greens</strong></td>
+            <td>S$ 1,421</td>
+            <td style="color:var(--green)">+0.77%</td>
+            <td>1.4%</td>
+            <td><span class="tag hold">Hold</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Action Plan -->
+    <div class="card">
+      <div class="card-title">Action Plan</div>
+      
       <div class="plan-box">
-        <h3 style="color:var(--green)">Держать / Усиливать</h3>
+        <h4 style="color:var(--teal)">Keep / Strengthen</h4>
         <ul>
-          <li><strong>Urban Signal Rooftops</strong> — лучший импульс (+4.95%)</li>
-          <li><strong>East Roof Solar Pool</strong> (+3.85%)</li>
-          <li><strong>North Grid Battery</strong> (+3.82%)</li>
-          <li><strong>Shida Sunfield</strong> — стабильно хороший</li>
+          <li>Urban Signal Rooftops (+4.95%)</li>
+          <li>East Roof Solar Pool (+3.85%)</li>
+          <li>North Grid Battery (+3.82%)</li>
+          <li>Shida Sunfield (stable)</li>
         </ul>
       </div>
+
       <div class="plan-box">
-        <h3 style="color:var(--amber)">Следить / Сокращать при слабости</h3>
+        <h4 style="color:var(--amber)">Watch / Reduce if weak</h4>
         <ul>
-          <li><strong>West Orchard Hazelnuts</strong> — почти на нуле</li>
-          <li><strong>Steel Yard Workshops</strong> — слабый день</li>
-          <li>При просадке этих двух — частично продавать и докидывать в тройку лидеров</li>
+          <li>West Orchard Hazelnuts</li>
+          <li>Steel Yard Workshops</li>
+          <li>При просадке — частично продавать и добавлять в сильные</li>
+        </ul>
+      </div>
+
+      <div class="plan-box">
+        <h4 style="color:var(--muted)">Cash</h4>
+        <ul>
+          <li>Свободно только S$ 375</li>
+          <li>Новая ротация только после продажи части слабых позиций</li>
         </ul>
       </div>
     </div>
-    <div class="note">
-      <strong>Важно:</strong> Свободных денег почти нет (S$ 375). Следующая ротация возможна только после продажи части West Orchard или Steel Yard. Не размывай сильные позиции.
-    </div>
-  </section>
+  </div>
+</div>
 
-  <!-- GAP TO TOP 3 -->
-  <section class="panel">
-    <div class="kicker">05 / GAP TO TOP 3</div>
-    <h2>Разрыв до призовых мест</h2>
-    <p class="muted">Топ-3 на момент предыдущих данных находился в зоне +10.5% … +12.2%. Тебе нужно ещё примерно <strong>+7–7.5%</strong> от текущего уровня.</p>
-    <p class="muted" style="margin-top:10px">Это достижимо, если три импульсных проекта (Urban Signal, East Roof, North Grid) продолжат расти, а слабые позиции не будут сильно тянуть вниз.</p>
-  </section>
+<script>
+// Equity chart
+const eqCtx = document.getElementById('equityChart').getContext('2d');
+new Chart(eqCtx, {
+  type: 'line',
+  data: {
+    labels: ['Start', 'Day 1', 'Q3 mid', 'Now'],
+    datasets: [{
+      data: [100000, 99000, 101000, 103305],
+      borderColor: '#2dd4bf',
+      backgroundColor: 'rgba(45, 212, 191, 0.12)',
+      fill: true,
+      tension: 0.4,
+      pointRadius: 4,
+      pointBackgroundColor: '#2dd4bf',
+      borderWidth: 2
+    }]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: { legend: { display: false } },
+    scales: {
+      x: { display: false },
+      y: {
+        grid: { color: '#1e293b' },
+        ticks: { color: '#64748b', callback: v => (v/1000) + 'k' }
+      }
+    }
+  }
+});
 
-  <footer>
-    MAGIC TRADING ASSISTANT · CATALYST RADAR · FRACTYCO DEMO<br>
-    Данные по скриншотам пользователя · Обновлено 02.11.2026
-  </footer>
-</main>
+// Allocation donut
+const alCtx = document.getElementById('allocChart').getContext('2d');
+new Chart(alCtx, {
+  type: 'doughnut',
+  data: {
+    labels: ['Shida', 'West Orchard', 'Steel Yard', 'East Roof', 'Urban Signal', 'North Grid', 'Lisi'],
+    datasets: [{
+      data: [19.3, 19.0, 17.6, 15.9, 15.6, 10.9, 1.4],
+      backgroundColor: ['#2dd4bf', '#34d399', '#60a5fa', '#a78bfa', '#f472b6', '#fbbf24', '#94a3b8'],
+      borderWidth: 0
+    }]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    cutout: '68%',
+    plugins: { legend: { display: false } }
+  }
+});
+</script>
 </body>
 </html>

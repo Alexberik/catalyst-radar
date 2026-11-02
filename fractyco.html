@@ -13,7 +13,6 @@
   --bg: #0b1120;
   --sidebar: #0f172a;
   --card: #111827;
-  --card2: #1e293b;
   --border: #1e293b;
   --text: #f1f5f9;
   --muted: #94a3b8;
@@ -31,7 +30,6 @@ body {
   min-height: 100vh;
   display: flex;
 }
-/* SIDEBAR */
 .sidebar {
   width: 220px;
   background: var(--sidebar);
@@ -60,13 +58,13 @@ body {
   font-size: 13px;
   cursor: pointer;
   transition: .15s;
+  text-decoration: none;
 }
 .nav-item:hover, .nav-item.active {
   background: #1e293b;
   color: var(--text);
 }
 .nav-item.active { color: var(--teal); }
-/* MAIN */
 .main {
   flex: 1;
   padding: 20px 24px;
@@ -77,11 +75,10 @@ body {
   justify-content: space-between;
   align-items: center;
   margin-bottom: 22px;
+  flex-wrap: wrap;
+  gap: 12px;
 }
-.topbar h1 {
-  font-size: 20px;
-  font-weight: 700;
-}
+.topbar h1 { font-size: 20px; font-weight: 700; }
 .topbar .badge {
   font-size: 11px;
   background: #134e4a;
@@ -90,7 +87,15 @@ body {
   border-radius: 20px;
   font-weight: 600;
 }
-/* GRID */
+.back-link {
+  font-size: 13px;
+  color: var(--teal);
+  text-decoration: none;
+  border: 1px solid #2dd4bf44;
+  padding: 6px 12px;
+  border-radius: 8px;
+}
+.back-link:hover { background: #2dd4bf18; }
 .grid-top {
   display: grid;
   grid-template-columns: 1.6fr 1fr 1fr;
@@ -111,32 +116,12 @@ body {
   text-transform: uppercase;
   letter-spacing: .5px;
 }
-.big-value {
-  font-size: 28px;
-  font-weight: 700;
-  margin-bottom: 4px;
-}
-.change {
-  font-size: 13px;
-  font-weight: 600;
-}
+.big-value { font-size: 28px; font-weight: 700; margin-bottom: 4px; }
+.change { font-size: 13px; font-weight: 600; }
 .change.up { color: var(--green); }
-.change.down { color: var(--red); }
-/* CHART */
-.chart-wrap {
-  height: 180px;
-  position: relative;
-}
-/* ALLOCATION */
-.alloc-wrap {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-}
-.alloc-legend {
-  flex: 1;
-  font-size: 12px;
-}
+.chart-wrap { height: 180px; position: relative; }
+.alloc-wrap { display: flex; align-items: center; gap: 16px; }
+.alloc-legend { flex: 1; font-size: 12px; }
 .alloc-item {
   display: flex;
   justify-content: space-between;
@@ -144,7 +129,6 @@ body {
   color: var(--muted);
 }
 .alloc-item span:last-child { color: var(--text); font-weight: 600; }
-/* TOP HOLDINGS */
 .holding-row {
   display: flex;
   align-items: center;
@@ -154,27 +138,15 @@ body {
   font-size: 13px;
 }
 .holding-row:last-child { border-bottom: none; }
-.holding-left {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-.dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-}
-/* BOTTOM GRID */
+.holding-left { display: flex; align-items: center; gap: 10px; }
+.dot { width: 8px; height: 8px; border-radius: 50%; }
 .grid-bottom {
   display: grid;
   grid-template-columns: 1.4fr 1fr;
   gap: 16px;
+  margin-bottom: 16px;
 }
-table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 13px;
-}
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
 th {
   text-align: left;
   color: var(--muted);
@@ -184,10 +156,7 @@ th {
   padding: 8px 6px;
   border-bottom: 1px solid var(--border);
 }
-td {
-  padding: 11px 6px;
-  border-bottom: 1px solid #1e293b;
-}
+td { padding: 11px 6px; border-bottom: 1px solid #1e293b; }
 .tag {
   font-size: 11px;
   font-weight: 600;
@@ -203,15 +172,38 @@ td {
   padding: 14px;
   margin-bottom: 12px;
 }
-.plan-box h4 {
-  font-size: 13px;
-  margin-bottom: 8px;
-}
+.plan-box h4 { font-size: 13px; margin-bottom: 8px; }
 .plan-box ul {
   padding-left: 16px;
   color: var(--muted);
   font-size: 12px;
   line-height: 1.6;
+}
+.upload-zone {
+  border: 1px dashed #334155;
+  border-radius: 12px;
+  padding: 28px;
+  text-align: center;
+  background: #0f172a;
+  margin-top: 8px;
+}
+.upload-zone.drag { border-color: var(--teal); background: #134e4a33; }
+.upload-zone input { margin-top: 12px; color: var(--muted); }
+.btn {
+  border: 0;
+  border-radius: 8px;
+  padding: 10px 16px;
+  font-weight: 600;
+  cursor: pointer;
+  font-size: 13px;
+}
+.btn-primary { background: var(--teal); color: #0b1120; }
+.btn-secondary { background: #1e293b; color: var(--text); border: 1px solid #334155; }
+.note {
+  font-size: 12px;
+  color: #94a3b8;
+  margin-top: 10px;
+  line-height: 1.5;
 }
 @media (max-width: 1100px) {
   .grid-top, .grid-bottom { grid-template-columns: 1fr; }
@@ -221,31 +213,27 @@ td {
 </head>
 <body>
 
-<!-- SIDEBAR -->
 <aside class="sidebar">
   <div class="logo">MAGIC <span>FRACTYCO</span></div>
-  <div class="nav-item active">Dashboard</div>
-  <div class="nav-item">Portfolio</div>
-  <div class="nav-item">Projects</div>
-  <div class="nav-item">Leaderboard</div>
-  <div class="nav-item">Wallet</div>
+  <a class="nav-item active" href="#">Dashboard</a>
+  <a class="nav-item" href="./index.html">← Catalyst Radar</a>
   <div style="flex:1"></div>
   <div class="nav-item" style="font-size:11px;color:#64748b">Demo only · No real money</div>
 </aside>
 
-<!-- MAIN -->
 <div class="main">
   <div class="topbar">
     <div>
       <h1>Demo Trading Sprint · Quarter 3</h1>
       <div style="font-size:12px;color:var(--muted);margin-top:2px">Alex B. · Live snapshot</div>
     </div>
-    <div class="badge">RANK #51</div>
+    <div style="display:flex;gap:10px;align-items:center">
+      <a class="back-link" href="./index.html">← Catalyst Radar</a>
+      <div class="badge">RANK #51</div>
+    </div>
   </div>
 
-  <!-- TOP CARDS -->
   <div class="grid-top">
-    <!-- Portfolio Value + Chart -->
     <div class="card">
       <div class="card-title">Portfolio Value</div>
       <div class="big-value">S$ 103,305</div>
@@ -255,7 +243,6 @@ td {
       </div>
     </div>
 
-    <!-- Asset Allocation -->
     <div class="card">
       <div class="card-title">Asset Allocation</div>
       <div class="alloc-wrap">
@@ -274,7 +261,6 @@ td {
       </div>
     </div>
 
-    <!-- Top Holdings / Key Stats -->
     <div class="card">
       <div class="card-title">Key Stats</div>
       <div class="holding-row">
@@ -283,7 +269,7 @@ td {
       </div>
       <div class="holding-row">
         <div class="holding-left"><div class="dot" style="background:var(--green)"></div> Unrealized PnL</div>
-        <div class="up" style="color:var(--green)">S$ 7,621</div>
+        <div style="color:var(--green)">S$ 7,621</div>
       </div>
       <div class="holding-row">
         <div class="holding-left"><div class="dot" style="background:var(--amber)"></div> Commissions</div>
@@ -300,9 +286,7 @@ td {
     </div>
   </div>
 
-  <!-- BOTTOM -->
   <div class="grid-bottom">
-    <!-- Holdings Table -->
     <div class="card">
       <div class="card-title">Current Holdings</div>
       <table>
@@ -369,10 +353,8 @@ td {
       </table>
     </div>
 
-    <!-- Action Plan -->
     <div class="card">
       <div class="card-title">Action Plan</div>
-      
       <div class="plan-box">
         <h4 style="color:var(--teal)">Keep / Strengthen</h4>
         <ul>
@@ -382,7 +364,6 @@ td {
           <li>Shida Sunfield (stable)</li>
         </ul>
       </div>
-
       <div class="plan-box">
         <h4 style="color:var(--amber)">Watch / Reduce if weak</h4>
         <ul>
@@ -391,7 +372,6 @@ td {
           <li>При просадке — частично продавать и добавлять в сильные</li>
         </ul>
       </div>
-
       <div class="plan-box">
         <h4 style="color:var(--muted)">Cash</h4>
         <ul>
@@ -401,10 +381,28 @@ td {
       </div>
     </div>
   </div>
+
+  <!-- Screenshot upload -->
+  <div class="card">
+    <div class="card-title">Update data via screenshots</div>
+    <p class="note">Загрузи свежие скриншоты Dashboard / Portfolio / Leaderboard. Данные обрабатываются локально в браузере. После загрузки можно скопировать текст и прислать мне для обновления отчёта.</p>
+    <div class="upload-zone" id="drop">
+      <div style="font-weight:600;margin-bottom:6px">Перетащи скриншоты сюда</div>
+      <div style="color:var(--muted);font-size:13px">или выбери файлы</div>
+      <input type="file" id="files" accept="image/png,image/jpeg,image/webp" multiple>
+      <div style="margin-top:14px;display:flex;gap:8px;justify-content:center;flex-wrap:wrap">
+        <button class="btn btn-primary" id="analyzeBtn">Распознать</button>
+        <button class="btn btn-secondary" id="clearBtn">Очистить</button>
+      </div>
+    </div>
+    <div id="preview" style="display:flex;flex-wrap:wrap;gap:10px;margin-top:14px"></div>
+    <pre id="ocrResult" style="margin-top:14px;background:#0f172a;border:1px solid var(--border);border-radius:10px;padding:14px;font-size:12px;color:var(--muted);white-space:pre-wrap;max-height:220px;overflow:auto;display:none"></pre>
+  </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 <script>
-// Equity chart
+// Charts
 const eqCtx = document.getElementById('equityChart').getContext('2d');
 new Chart(eqCtx, {
   type: 'line',
@@ -435,7 +433,6 @@ new Chart(eqCtx, {
   }
 });
 
-// Allocation donut
 const alCtx = document.getElementById('allocChart').getContext('2d');
 new Chart(alCtx, {
   type: 'doughnut',
@@ -454,6 +451,65 @@ new Chart(alCtx, {
     plugins: { legend: { display: false } }
   }
 });
+
+// Simple screenshot preview + OCR
+const filesInput = document.getElementById('files');
+const drop = document.getElementById('drop');
+const preview = document.getElementById('preview');
+const ocrResult = document.getElementById('ocrResult');
+let selected = [];
+
+function renderPreviews() {
+  preview.innerHTML = '';
+  selected.forEach((f, i) => {
+    const url = URL.createObjectURL(f);
+    const div = document.createElement('div');
+    div.style.cssText = 'width:120px;border:1px solid #1e293b;border-radius:8px;overflow:hidden';
+    div.innerHTML = `<img src="${url}" style="width:100%;height:80px;object-fit:cover"><div style="padding:4px 6px;font-size:10px;color:#94a3b8">${f.name}</div>`;
+    preview.appendChild(div);
+  });
+}
+
+filesInput.addEventListener('change', e => {
+  selected = [...e.target.files];
+  renderPreviews();
+});
+
+['dragenter','dragover'].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.add('drag'); }));
+['dragleave','drop'].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.remove('drag'); }));
+drop.addEventListener('drop', e => {
+  selected = [...e.dataTransfer.files].filter(f => f.type.startsWith('image/'));
+  renderPreviews();
+});
+
+document.getElementById('clearBtn').onclick = () => {
+  selected = [];
+  filesInput.value = '';
+  preview.innerHTML = '';
+  ocrResult.style.display = 'none';
+  ocrResult.textContent = '';
+};
+
+document.getElementById('analyzeBtn').onclick = async () => {
+  if (!selected.length) {
+    alert('Сначала выбери скриншоты');
+    return;
+  }
+  ocrResult.style.display = 'block';
+  ocrResult.textContent = 'Распознавание...';
+  try {
+    const worker = await Tesseract.createWorker('eng+rus');
+    let full = '';
+    for (const f of selected) {
+      const { data: { text } } = await worker.recognize(f);
+      full += `\n\n=== ${f.name} ===\n` + text;
+    }
+    await worker.terminate();
+    ocrResult.textContent = full.trim() || 'Текст не распознан';
+  } catch (err) {
+    ocrResult.textContent = 'Ошибка OCR: ' + err.message;
+  }
+};
 </script>
 </body>
 </html>

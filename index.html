@@ -11,6 +11,20 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=Playfair+Display:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
 <script src="demo.js" defer></script>
+<style>
+  /* Make Fractyco link always visible and prominent */
+  .nav a[href*="fractyco"] {
+    color: #2dd4bf !important;
+    font-weight: 700 !important;
+    border: 1px solid #2dd4bf44;
+    border-radius: 6px;
+    padding: 4px 10px !important;
+    margin-left: 4px;
+  }
+  .nav a[href*="fractyco"]:hover {
+    background: #2dd4bf22;
+  }
+</style>
 </head>
 <body>
 <div class="ambient" aria-hidden="true"></div>
@@ -30,7 +44,7 @@
     <a href="#majors">Core</a>
     <a href="#geopolitics">Events</a>
     <a href="#sources">Sources</a>
-    <a href="./fractyco.html" style="color:#2dd4bf;font-weight:600">Fractyco</a>
+    <a href="./fractyco.html">Fractyco</a>
   </nav>
   <div class="top-actions">
     <span class="live-pill"><i></i> LIVE</span>
@@ -47,7 +61,7 @@
       <p class="lead">Единая исследовательская платформа: аномалии, новые пулы, катализаторы и paper-trading. Только наблюдаемые данные — никаких выдуманных прогнозов.</p>
       <div class="hero-cta">
         <a class="btn btn-primary" href="#discovery">Открыть радар <span>↘</span></a>
-        <a class="btn btn-ghost" href="./fractyco.html">Fractyco Demo</a>
+        <a class="btn btn-ghost" href="./fractyco.html">Fractyco Demo →</a>
       </div>
       <div class="hero-tags">
         <span>● Реальные данные</span>
@@ -187,7 +201,7 @@
     <p class="section-desc">Малые компании, IPO, регуляторные и корпоративные катализаторы. Цены — только после лицензированного feed.</p></div>
   <div class="event-grid">
     <div class="card"><div class="card-head"><span>IPO / FILINGS</span><span class="tag muted">PRIMARY</span></div><p class="card-body">S-1 / F-1, lock-up, новые размещения.</p><div class="ticker-row"><a href="https://www.sec.gov/edgar/search/" target="_blank" rel="noopener">SEC EDGAR ↗</a><a href="https://www.nasdaq.com/market-activity/ipos" target="_blank" rel="noopener">Nasdaq IPO ↗</a></div></div>
-    <div class="card"><div class="card-head"><span>BIOTECH / FDA</span><span class="tag muted">EVENT</span></div><p class="card-body">Клинические результаты и регуляторные решения.</p><div class="ticker-row"><a href="https://www.fda.gov/news-events/press-announcements" target="_blank" rel="noopener">FDA ↗</a><a href="https://clinicaltrials.gov/" target="_blank" rel="noopener">ClinicalTrials ↗</a></div></div>
+    <div class="card"><div class="card-head"><span>BIOTECH / FDA</span><span class="tag muted">EVENT</span></div><p class="card-body">Клинические результаты и регуляторные решения.</p><div class="ticker-row"><a href="https://clinicaltrials.gov/" target="_blank" rel="noopener">ClinicalTrials ↗</a></div></div>
   </div>
   <div class="card coming-block" style="margin-top:16px"><div class="coming-inner"><div class="coming-badge large">Coming soon</div><p>Live quotes по акциям появятся после подключения licensed stock feed.</p></div></div>
 </section>

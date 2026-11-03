@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import sys
 import asyncio
+import pytest
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
@@ -64,3 +65,39 @@ def test_ccxt_ohlcv_returns_candles_and_closes_client(monkeypatch):
 def test_ccxt_ohlcv_rejects_unsupported_exchange():
     result = asyncio.run(main.ccxt_ohlcv(exchange_id="unknown", symbol="BTC/USDT", timeframe="1h", limit=50))
     assert result["status"] == "unsupported_exchange"
+
+
+class FakeRpcResponse:
+    def raise_for_status(self):
+        return None
+
+    def json(self):
+        return {"jsonrpc": "2.0", "result": {"context": {"slot": 123}, "value": 42}}
+
+
+class FakeRpcClient:
+    def __init__(self):
+        self.calls = []
+
+    async def post(self, url, json):
+        self.calls.append((url, json))
+        return FakeRpcResponse()
+
+
+def test_fluxrpc_json_rpc_uses_server_key_and_short_cache(monkeypatch):
+    monkeypatch.setenv("FLUXRPC_API_KEY", "server-only-test-key")
+    monkeypatch.setenv("FLUXRPC_HTTP_URL", "https://eu.fluxrpc.com")
+    main._cache.clear()
+    client = FakeRpcClient()
+    first = asyncio.run(main.fluxrpc_json_rpc(client, "getSlot", [{"commitment": "confirmed"}]))
+    second = asyncio.run(main.fluxrpc_json_rpc(client, "getSlot", [{"commitment": "confirmed"}]))
+    assert first == second
+    assert len(client.calls) == 1
+    assert "server-only-test-key" in client.calls[0][0]
+    assert client.calls[0][1]["method"] == "getSlot"
+
+
+def test_fluxrpc_json_rpc_requires_server_key(monkeypatch):
+    monkeypatch.delenv("FLUXRPC_API_KEY", raising=False)
+    with pytest.raises(RuntimeError):
+        asyncio.run(main.fluxrpc_json_rpc(FakeRpcClient(), "getSlot", []))

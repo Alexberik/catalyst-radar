@@ -11,6 +11,7 @@ from pathlib import Path
 from typing import Any
 
 import httpx
+import ccxt.async_support as ccxt
 from fastapi import FastAPI, Query
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -359,6 +360,100 @@ app = FastAPI(title="Catalyst Radar Data API", version=APP_VERSION, description=
 origins = [x.strip() for x in os.getenv("CORS_ORIGINS", "https://alexberik.github.io,http://localhost:8000,http://127.0.0.1:8000").split(",") if x.strip()]
 app.add_middleware(CORSMiddleware, allow_origins=origins, allow_credentials=False, allow_methods=["GET"], allow_headers=["*"])
 
+
+CCXT_ALLOWED_EXCHANGES = {"binance", "bybit", "okx", "kucoin", "kraken", "gateio"}
+
+async def ccxt_exchange_data(exchange_id: str, symbols: list[str]) -> dict[str, Any]:
+    """Public-only CCXT market snapshot. No credentials or private endpoints are used."""
+    if exchange_id not in CCXT_ALLOWED_EXCHANGES:
+        return {"exchange": exchange_id, "status": "unsupported_exchange", "tickers": []}
+    exchange_class = getattr(ccxt, exchange_id, None)
+    if exchange_class is None:
+        return {"exchange": exchange_id, "status": "exchange_unavailable_in_ccxt_build", "tickers": []}
+    exchange = exchange_class({"enableRateLimit": True, "timeout": int(TIMEOUT * 1000)})
+    try:
+        await exchange.load_markets()
+        requested = [symbol for symbol in symbols if symbol in exchange.markets]
+        if symbols and not requested:
+            return {"exchange": exchange_id, "status": "symbols_not_listed", "tickers": []}
+        data = await exchange.fetch_tickers(requested or None)
+        rows = []
+        for symbol, ticker in data.items():
+            if requested and symbol not in requested:
+                continue
+            rows.append({
+                "exchange": exchange_id, "symbol": symbol,
+                "base": (exchange.markets.get(symbol) or {}).get("base"),
+                "quote": (exchange.markets.get(symbol) or {}).get("quote"),
+                "price": num(ticker.get("last")),
+                "change_24h_pct": num(ticker.get("percentage")),
+                "bid": num(ticker.get("bid")), "ask": num(ticker.get("ask")),
+                "base_volume_24h": num(ticker.get("baseVolume")),
+                "quote_volume_24h": num(ticker.get("quoteVolume")),
+                "high_24h": num(ticker.get("high")), "low_24h": num(ticker.get("low")),
+                "timestamp": ticker.get("timestamp"), "datetime": ticker.get("datetime"),
+                "source": "CCXT public market data",
+            })
+        _source_status["ccxt:"+exchange_id] = {"ok": True, "configured": True, "checked_at": now_iso(), "error": None}
+        return {"exchange": exchange_id, "status": "available", "tickers": rows}
+    except Exception as exc:
+        _source_status["ccxt:"+exchange_id] = {"ok": False, "configured": True, "checked_at": now_iso(), "error": safe_error(exc)}
+        return {"exchange": exchange_id, "status": "unavailable", "error": safe_error(exc), "tickers": []}
+    finally:
+        try:
+            await exchange.close()
+        except Exception:
+            pass
+
+@app.get(f"{API_PREFIX}/markets/ccxt")
+async def ccxt_markets(
+    exchanges: str = Query(default="binance,bybit", min_length=3, max_length=100),
+    symbols: str = Query(default="BTC/USDT,ETH/USDT,SOL/USDT,BNB/USDT", min_length=3, max_length=300),
+):
+    """Read-only centralized-exchange snapshot through CCXT; never accesses private trading methods."""
+    exchange_ids = list(dict.fromkeys(x.strip().lower() for x in exchanges.split(",") if x.strip()))[:4]
+    requested_symbols = list(dict.fromkeys(x.strip().upper() for x in symbols.split(",") if x.strip()))[:20]
+    results = await asyncio.gather(*(ccxt_exchange_data(e, requested_symbols) for e in exchange_ids))
+    tickers = [ticker for result in results for ticker in result.get("tickers", [])]
+    return {
+        "generated_at": now_iso(), "mode": "public_read_only",
+        "exchanges": results, "count": len(tickers), "tickers": tickers,
+        "disclaimer": "Public market data only. No private keys, account access, or order placement.",
+    }
+
+@app.get(f"{API_PREFIX}/markets/ccxt/ohlcv")
+async def ccxt_ohlcv(
+    exchange_id: str = Query(default="binance", min_length=2, max_length=20),
+    symbol: str = Query(default="BTC/USDT", min_length=3, max_length=30),
+    timeframe: str = Query(default="1h", pattern="^(5m|30m|1h|1d)$"),
+    limit: int = Query(default=200, ge=20, le=500),
+):
+    """Fetch public OHLCV candles for research; no order or account methods are called."""
+    exchange_id = exchange_id.lower()
+    if exchange_id not in CCXT_ALLOWED_EXCHANGES:
+        return {"status": "unsupported_exchange", "candles": []}
+    exchange_class = getattr(ccxt, exchange_id, None)
+    if exchange_class is None:
+        return {"status": "exchange_unavailable_in_ccxt_build", "candles": []}
+    exchange = exchange_class({"enableRateLimit": True, "timeout": int(TIMEOUT * 1000)})
+    try:
+        await exchange.load_markets()
+        if symbol not in exchange.markets:
+            return {"status": "symbol_not_listed", "exchange": exchange_id, "symbol": symbol, "candles": []}
+        rows = await exchange.fetch_ohlcv(symbol, timeframe=timeframe, limit=limit)
+        candles = [{"timestamp": row[0], "open": row[1], "high": row[2], "low": row[3], "close": row[4], "volume": row[5]} for row in rows]
+        _source_status["ccxt:"+exchange_id] = {"ok": True, "configured": True, "checked_at": now_iso(), "error": None}
+        return {"status": "available", "exchange": exchange_id, "symbol": symbol, "timeframe": timeframe, "count": len(candles), "candles": candles, "source": "CCXT public OHLCV"}
+    except Exception as exc:
+        _source_status["ccxt:"+exchange_id] = {"ok": False, "configured": True, "checked_at": now_iso(), "error": safe_error(exc)}
+        return {"status": "unavailable", "exchange": exchange_id, "symbol": symbol, "timeframe": timeframe, "candles": [], "error": safe_error(exc)}
+    finally:
+        try:
+            await exchange.close()
+        except Exception:
+            pass
+
+
 @app.get(f"{API_PREFIX}/security/{{chain}}/{{address}}")
 async def token_security(chain: str, address: str):
     """Return available contract-risk checks. Missing fields mean unknown, not safe."""
@@ -572,6 +667,7 @@ async def sources():
     configured = {
         "DEX Screener": True, "GeckoTerminal": True, "CoinPaprika": True,
         "Binance spot public market data": True,
+        "CCXT public exchanges": True,
         "CoinGecko": bool(os.getenv("COINGECKO_DEMO_API_KEY") or os.getenv("COINGECKO_API_KEY")),
         "CryptoPanic": bool(os.getenv("CRYPTOPANIC_API_KEY")),
         "SEC EDGAR": bool(os.getenv("SEC_CIKS")),
@@ -590,7 +686,8 @@ async def sources():
     aliases = {
         "DEX Screener":["dexscreener_profiles","dexscreener_boosts"],
         "GeckoTerminal":["geckoterminal"], "CoinPaprika":["coinpaprika"],
-        "Binance spot public market data":["binance_spot"], "CoinGecko":["coingecko"],
+        "Binance spot public market data":["binance_spot"],
+        "CCXT public exchanges":[k for k in _source_status if k.startswith("ccxt:")], "CoinGecko":["coingecko"],
         "CryptoPanic":["cryptopanic"], "SEC EDGAR":["sec_edgar"], "GDELT":["gdelt_news"],
         "GoPlus Security":["goplus"], "Helius":["helius"], "Birdeye":["birdeye"],
         "RugCheck":["rugcheck"], "Finnhub":["finnhub"], "X API":["x_api"],

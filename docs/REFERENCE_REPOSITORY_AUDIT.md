@@ -1,4 +1,4 @@
-# MAGIC Market Intelligence — Reference Repository Audit
+# Catalyst Radar — Market Intelligence — Reference Repository Audit
 
 Updated: 2026-11-03
 
@@ -8,11 +8,11 @@ This document records what was reviewed in the ten supplied public repositories,
 
 ## Reference review
 
-| Repository | What the source documents | Adopt in MAGIC | Do not assume |
+| Repository | What the source documents | Adopt in Catalyst Radar | Do not assume |
 |---|---|---|---|
 | [ccxt/ccxt](https://github.com/ccxt/ccxt) | Unified public/private REST and WebSocket APIs for 100+ crypto exchanges and prediction-market venues; normalized market data and trading interfaces; multiple languages. | Optional CEX adapter for OHLCV, tickers, order books and exchange metadata. Keep exchange-specific limits and market identifiers behind adapters. Use public-only credentials-free mode initially. | CCXT does not provide Solana DEX pool firehose or token risk/holder intelligence. Private trading must remain disabled in this project phase. |
 | [crypto-analytics-platform](https://github.com/sarfraspc/crypto-analytics-platform) | FastAPI, MCP orchestration, MLflow, Prophet, CNN-LSTM, TFT, SARIMAX, SHAP, sentiment, RAG/Qdrant, on-chain and multi-source ingestion. | Separate data/forecast/sentiment/on-chain services; model registry and experiment tracking; explainability and citations; optional read-only research assistant. | Repository description and README do not establish that its models generalize to new Solana microcaps. Do not import the monolith wholesale. |
-| [Awesome-Prediction-Market-Tools](https://github.com/aarora4/Awesome-Prediction-Market-Tools) | Curated prediction-market products, tools and APIs including market data, analytics, news and agent workflows. | Optional Event Probability Monitor: track event contracts, probability changes, liquidity and source links for macro/geopolitical/listing catalysts. Use only documented APIs and distinguish market-implied probability from MAGIC's forecast. | A curated directory is not a guarantee that every listed API is free, active, accurate or licensed for redistribution. |
+| [Awesome-Prediction-Market-Tools](https://github.com/aarora4/Awesome-Prediction-Market-Tools) | Curated prediction-market products, tools and APIs including market data, analytics, news and agent workflows. | Optional Event Probability Monitor: track event contracts, probability changes, liquidity and source links for macro/geopolitical/listing catalysts. Use only documented APIs and distinguish market-implied probability from Catalyst Radar's forecast. | A curated directory is not a guarantee that every listed API is free, active, accurate or licensed for redistribution. |
 | [crypto_prediction](https://github.com/baileyarzate/crypto_prediction) | End-to-end BTC next-day close pipeline: CCXT OHLCV, technical/macro/news features, Linear/Ridge/Random Forest/XGBoost ensemble, SHAP and reproducible timestamped artifacts. | Reproducible training runs, timestamped feature datasets, baseline model ensemble, model-spread display and SHAP-based explanation where supported. | BTC-only results cannot be transferred to thin-liquidity microcaps without new training and validation. |
 | [crypto-price-predict](https://github.com/gpmikhail/crypto-price-predict) | Binance historical data ingestion, saved CSV, candlestick display and TensorFlow/Keras GPU prediction workflow. | Historical candle ingestion and chart/data pipeline patterns only. | GPU deep learning is not a prerequisite for the MVP; the README does not demonstrate robust out-of-sample accuracy. |
 | [market-forecast](https://github.com/kavehbc/market-forecast) | Streamlit forecast app using Prophet/NeuralProphet and Yahoo Finance historical price data. | Add simple statistical baselines as challengers to more complex models; make model limitations visible. | Forecasts based only on historical prices do not incorporate pool health, wallet flows, social events or executable liquidity. |
@@ -25,12 +25,12 @@ This document records what was reviewed in the ten supplied public repositories,
 
 - CCXT repository metadata identifies MIT.
 - TradingAgents repository metadata identifies Apache-2.0.
-- Freqtrade repository metadata identifies GPL-3.0; treat it as a separate copyleft product and do not copy its implementation into MAGIC without legal review.
+- Freqtrade repository metadata identifies GPL-3.0; treat it as a separate copyleft product and do not copy its implementation into Catalyst Radar without legal review.
 - For repositories whose license was not verified during this audit, reuse architectural ideas only until their license files are checked.
 - The prediction-market tools repository is a directory of third-party resources; each linked product/API has its own terms.
 - Keep notices and license texts when any permitted code reuse is approved. Prefer clean-room implementations of ideas.
 
-## Product decisions for MAGIC
+## Product decisions for Catalyst Radar
 
 1. Preserve the existing Catalyst Radar public frontend and FastAPI service; evolve it incrementally rather than replacing a working deployment with an untested framework migration.
 2. Keep **Solana early discovery** as the differentiator. CCXT is a separate centralized-exchange market-data adapter, not a replacement for FluxRPC/Yellowstone, Helius, Birdeye or DEX pool sources.
@@ -74,7 +74,7 @@ Public / licensed providers
                   ↓
       Forward evaluation + calibration report
                   ↓
-             MAGIC web UI
+             Catalyst Radar web UI
 ```
 
 ## Forecast model stack

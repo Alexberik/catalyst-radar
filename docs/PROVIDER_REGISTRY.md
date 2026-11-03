@@ -1,14 +1,14 @@
-# MAGIC Provider Registry & Integration Plan
+# Catalyst Radar Provider Registry & Integration Plan
 
 Updated: 2026-11-03
 
-This is the canonical provider selection checklist for Catalyst Radar / MAGIC. Status labels describe repository code, not a guarantee that an external service is currently responding.
+This is the canonical provider selection checklist for Catalyst Radar. Status labels describe repository code, not a guarantee that an external service is currently responding.
 
 ## Provider matrix
 
 | Domain | Provider | Intended role | Current repository status | Priority / decision |
 |---|---|---|---|---|
-| Solana RPC | FluxRPC HTTP | Account, token, program and recent transaction reads | Documentation reviewed; no verified adapter in FastAPI yet | P1; implement after auth, regional endpoint and limits are confirmed |
+| Solana RPC | FluxRPC HTTP | Account, token, program and recent transaction reads | Read-only HTTP snapshot endpoint implemented for token supply, largest token accounts and recent signatures; key required, live smoke test pending | P1; implement after auth, regional endpoint and limits are confirmed |
 | Solana stream | FluxRPC WebSocket | Account/log/slot/transaction subscriptions | Documentation reviewed; persistent consumer not deployed | P1; worker process required |
 | Solana stream | FluxRPC Yellowstone gRPC | High-volume transaction/account stream | Documentation reviewed; filter schema/auth/quotas still to verify | P1; preferred stream once validated |
 | Solana risk | RugCheck | Token risk report and holder-related context | Existing backend has a read-only summary request | P1; keep source timestamp and risk details |
@@ -18,7 +18,7 @@ This is the canonical provider selection checklist for Catalyst Radar / MAGIC. S
 | DEX discovery | GeckoTerminal | New pools and pool metrics | Public request implemented | P1 |
 | DEX discovery | DEX Screener | Profiles/boosts/pair snapshots | Public requests implemented | P1; legal/terms review before commercial product |
 | Swap feasibility | Jupiter | Read-only buy/sell quote route and price impact | Not yet integrated | P1; required before showing executable size estimates |
-| CEX market data | CCXT | Unified exchange tickers/OHLCV/order books | Not installed in backend | P2; public endpoints only, select venues |
+| CEX market data | CCXT | Unified exchange tickers/OHLCV/order books | Public-only ticker and OHLCV endpoints implemented for allowlisted exchanges; tests added, live smoke test pending | P2; public endpoints only, select venues |
 | CEX market data | Binance Spot | 24h tickers | Public request implemented | P1 |
 | Broad crypto | CoinPaprika | Market ticker metadata | Public request implemented | P1 |
 | Broad crypto | CoinGecko | Market metadata | Optional server-side key path exists | P2 |
@@ -41,7 +41,7 @@ Set only in Vercel/Cloudflare/worker secret stores. Never commit values.
 
 | Secret | Used for |
 |---|---|
-| FLUXRPC_API_KEY | FluxRPC HTTP / stream authentication (exact method to confirm from docs) |
+| FLUXRPC_API_KEY | FluxRPC HTTP JSON-RPC authentication via the documented `?key=` query parameter; never expose to browser. WebSocket auth still requires a separate verified configuration |
 | FLUXRPC_SHIELD_KEY | Only for the documented Shield use case; do not assume it replaces a server API key |
 | HELIUS_API_KEY | Helius enhanced RPC |
 | BIRDEYE_API_KEY | Birdeye API |
@@ -88,6 +88,8 @@ Never merge two assets only because their ticker symbols match. Use chain + mint
 
 ## Solana wallet intelligence (internal scoring service)
 
+Current FluxRPC HTTP snapshot exposes largest token-account balances and parsed token-account authorities where returned. It does **not** yet classify buys/sells, identify beneficial owners, cluster wallets or establish Smart Money behavior. Those require persistent transaction ingestion and enrichment.
+
 Track wallet behavior without creating a standalone UI tab:
 - first-buy timing relative to pool creation and first public volume;
 - realized/unrealized PnL when a complete trade history is available;
@@ -97,7 +99,7 @@ Track wallet behavior without creating a standalone UI tab:
 - shared funders, rapid transfers and address clusters;
 - independence-adjusted count of wallets accumulating the same mint.
 
-A wallet cluster counts as one signal group, not multiple independent confirmations. Label this "wallet behavior / Smart Money signal", never "insider wallet". Historical coverage is incomplete until MAGIC has continuously collected its own Solana events.
+A wallet cluster counts as one signal group, not multiple independent confirmations. Label this "wallet behavior / Smart Money signal", never "insider wallet". Historical coverage is incomplete until Catalyst Radar has continuously collected its own Solana events.
 
 ## Jupiter route checks
 

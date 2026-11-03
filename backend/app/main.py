@@ -3,6 +3,7 @@ from __future__ import annotations
 import asyncio
 import json
 import os
+import re
 import sqlite3
 import time
 from contextlib import asynccontextmanager, contextmanager
@@ -11,10 +12,11 @@ from pathlib import Path
 from typing import Any
 
 import httpx
+import ccxt.async_support as ccxt
 from fastapi import FastAPI, Query
 from fastapi.middleware.cors import CORSMiddleware
 
-APP_VERSION = "0.1.0"
+APP_VERSION = "0.2.0"
 DB_PATH = os.getenv("DATABASE_PATH", "./data/catalyst_radar.sqlite3")
 API_PREFIX = "/api/v1"
 NETWORKS = [x.strip() for x in os.getenv("GECKOTERMINAL_NETWORKS", "solana,base,eth,bsc,arbitrum").split(",") if x.strip()]
@@ -359,6 +361,202 @@ app = FastAPI(title="Catalyst Radar Data API", version=APP_VERSION, description=
 origins = [x.strip() for x in os.getenv("CORS_ORIGINS", "https://alexberik.github.io,http://localhost:8000,http://127.0.0.1:8000").split(",") if x.strip()]
 app.add_middleware(CORSMiddleware, allow_origins=origins, allow_credentials=False, allow_methods=["GET"], allow_headers=["*"])
 
+
+CCXT_ALLOWED_EXCHANGES = {"binance", "bybit", "okx", "kucoin", "kraken", "gateio"}
+
+async def ccxt_exchange_data(exchange_id: str, symbols: list[str]) -> dict[str, Any]:
+    """Public-only CCXT market snapshot. No credentials or private endpoints are used."""
+    if exchange_id not in CCXT_ALLOWED_EXCHANGES:
+        return {"exchange": exchange_id, "status": "unsupported_exchange", "tickers": []}
+    exchange_class = getattr(ccxt, exchange_id, None)
+    if exchange_class is None:
+        return {"exchange": exchange_id, "status": "exchange_unavailable_in_ccxt_build", "tickers": []}
+    exchange = exchange_class({"enableRateLimit": True, "timeout": int(TIMEOUT * 1000)})
+    try:
+        await exchange.load_markets()
+        requested = [symbol for symbol in symbols if symbol in exchange.markets]
+        if symbols and not requested:
+            return {"exchange": exchange_id, "status": "symbols_not_listed", "tickers": []}
+        data = await exchange.fetch_tickers(requested or None)
+        rows = []
+        for symbol, ticker in data.items():
+            if requested and symbol not in requested:
+                continue
+            rows.append({
+                "exchange": exchange_id, "symbol": symbol,
+                "base": (exchange.markets.get(symbol) or {}).get("base"),
+                "quote": (exchange.markets.get(symbol) or {}).get("quote"),
+                "price": num(ticker.get("last")),
+                "change_24h_pct": num(ticker.get("percentage")),
+                "bid": num(ticker.get("bid")), "ask": num(ticker.get("ask")),
+                "base_volume_24h": num(ticker.get("baseVolume")),
+                "quote_volume_24h": num(ticker.get("quoteVolume")),
+                "high_24h": num(ticker.get("high")), "low_24h": num(ticker.get("low")),
+                "timestamp": ticker.get("timestamp"), "datetime": ticker.get("datetime"),
+                "source": "CCXT public market data",
+            })
+        _source_status["ccxt:"+exchange_id] = {"ok": True, "configured": True, "checked_at": now_iso(), "error": None}
+        return {"exchange": exchange_id, "status": "available", "tickers": rows}
+    except Exception as exc:
+        _source_status["ccxt:"+exchange_id] = {"ok": False, "configured": True, "checked_at": now_iso(), "error": safe_error(exc)}
+        return {"exchange": exchange_id, "status": "unavailable", "error": safe_error(exc), "tickers": []}
+    finally:
+        try:
+            await exchange.close()
+        except Exception:
+            pass
+
+@app.get(f"{API_PREFIX}/markets/ccxt")
+async def ccxt_markets(
+    exchanges: str = Query(default="binance,bybit", min_length=3, max_length=100),
+    symbols: str = Query(default="BTC/USDT,ETH/USDT,SOL/USDT,BNB/USDT", min_length=3, max_length=300),
+):
+    """Read-only centralized-exchange snapshot through CCXT; never accesses private trading methods."""
+    exchange_ids = list(dict.fromkeys(x.strip().lower() for x in exchanges.split(",") if x.strip()))[:4]
+    requested_symbols = list(dict.fromkeys(x.strip().upper() for x in symbols.split(",") if x.strip()))[:20]
+    results = await asyncio.gather(*(ccxt_exchange_data(e, requested_symbols) for e in exchange_ids))
+    tickers = [ticker for result in results for ticker in result.get("tickers", [])]
+    return {
+        "generated_at": now_iso(), "mode": "public_read_only",
+        "exchanges": results, "count": len(tickers), "tickers": tickers,
+        "disclaimer": "Public market data only. No private keys, account access, or order placement.",
+    }
+
+@app.get(f"{API_PREFIX}/markets/ccxt/ohlcv")
+async def ccxt_ohlcv(
+    exchange_id: str = Query(default="binance", min_length=2, max_length=20),
+    symbol: str = Query(default="BTC/USDT", min_length=3, max_length=30),
+    timeframe: str = Query(default="1h", pattern="^(5m|30m|1h|1d)$"),
+    limit: int = Query(default=200, ge=20, le=500),
+):
+    """Fetch public OHLCV candles for research; no order or account methods are called."""
+    exchange_id = exchange_id.lower()
+    if exchange_id not in CCXT_ALLOWED_EXCHANGES:
+        return {"status": "unsupported_exchange", "candles": []}
+    exchange_class = getattr(ccxt, exchange_id, None)
+    if exchange_class is None:
+        return {"status": "exchange_unavailable_in_ccxt_build", "candles": []}
+    exchange = exchange_class({"enableRateLimit": True, "timeout": int(TIMEOUT * 1000)})
+    try:
+        await exchange.load_markets()
+        if symbol not in exchange.markets:
+            return {"status": "symbol_not_listed", "exchange": exchange_id, "symbol": symbol, "candles": []}
+        rows = await exchange.fetch_ohlcv(symbol, timeframe=timeframe, limit=limit)
+        candles = [{"timestamp": row[0], "open": row[1], "high": row[2], "low": row[3], "close": row[4], "volume": row[5]} for row in rows]
+        _source_status["ccxt:"+exchange_id] = {"ok": True, "configured": True, "checked_at": now_iso(), "error": None}
+        return {"status": "available", "exchange": exchange_id, "symbol": symbol, "timeframe": timeframe, "count": len(candles), "candles": candles, "source": "CCXT public OHLCV"}
+    except Exception as exc:
+        _source_status["ccxt:"+exchange_id] = {"ok": False, "configured": True, "checked_at": now_iso(), "error": safe_error(exc)}
+        return {"status": "unavailable", "exchange": exchange_id, "symbol": symbol, "timeframe": timeframe, "candles": [], "error": safe_error(exc)}
+    finally:
+        try:
+            await exchange.close()
+        except Exception:
+            pass
+
+
+
+async def fluxrpc_json_rpc(client: httpx.AsyncClient, method: str, params: list[Any]) -> Any:
+    """Call FluxRPC Solana JSON-RPC using a server-side key only."""
+    key = os.getenv("FLUXRPC_API_KEY")
+    if not key:
+        raise RuntimeError("FLUXRPC_API_KEY not configured")
+    cache_key = "fluxrpc:" + method + ":" + json.dumps(params, sort_keys=True)
+    cached = _cache.get(cache_key)
+    if cached and time.time() - cached[0] < CACHE_TTL:
+        _source_status["fluxrpc_http"] = {"ok":True,"configured":True,"cached":True,"checked_at":now_iso(),"error":None}
+        return cached[1]
+    base = os.getenv("FLUXRPC_HTTP_URL", "https://eu.fluxrpc.com").rstrip("/")
+    url = base + "?" + str(httpx.QueryParams({"key": key}))
+    started = time.monotonic()
+    try:
+        response = await client.post(url, json={"jsonrpc":"2.0","id":"catalyst-radar","method":method,"params":params})
+        response.raise_for_status()
+        payload = response.json()
+        if payload.get("error"):
+            raise RuntimeError("FluxRPC JSON-RPC returned an error")
+        result = payload.get("result")
+        _cache[cache_key] = (time.time(), result)
+        _source_status["fluxrpc_http"] = {"ok":True,"configured":True,"cached":False,"checked_at":now_iso(),"latency_ms":round((time.monotonic()-started)*1000),"error":None}
+        return result
+    except Exception as exc:
+        _source_status["fluxrpc_http"] = {"ok":False,"configured":True,"checked_at":now_iso(),"error":safe_error(exc)}
+        raise
+
+@app.get(f"{API_PREFIX}/solana/asset/{{mint}}/snapshot")
+async def solana_asset_snapshot(mint: str, limit: int = Query(default=30, ge=5, le=100)):
+    """Read-only Solana token supply, largest token accounts and recent address activity."""
+    if not re.fullmatch(r"[1-9A-HJ-NP-Za-km-z]{32,44}", mint):
+        return {"status":"invalid_mint_address","source":"FluxRPC","mint":mint,"checked_at":now_iso(),"message":"Expected a base58 Solana public key."}
+    if not os.getenv("FLUXRPC_API_KEY"):
+        _source_status["fluxrpc_http"] = {"ok":False,"configured":False,"checked_at":now_iso(),"error":"FLUXRPC_API_KEY not configured"}
+        return {"status":"not_configured","source":"FluxRPC","mint":mint,"checked_at":now_iso(),"message":"Set FLUXRPC_API_KEY as a server-side backend secret."}
+    headers = {"Accept":"application/json","User-Agent":"CatalystRadar/0.2 read-only research"}
+    async with httpx.AsyncClient(timeout=TIMEOUT, follow_redirects=True, headers=headers) as client:
+        tasks = await asyncio.gather(
+            fluxrpc_json_rpc(client,"getTokenSupply",[mint,{"commitment":"confirmed"}]),
+            fluxrpc_json_rpc(client,"getTokenLargestAccounts",[mint,{"commitment":"confirmed"}]),
+            fluxrpc_json_rpc(client,"getSignaturesForAddress",[mint,{"limit":limit,"commitment":"confirmed"}]),
+            return_exceptions=True,
+        )
+        names = ["supply","largest_accounts","recent_signatures"]
+        data: dict[str, Any] = {}
+        errors: dict[str, str] = {}
+        for name, result in zip(names,tasks):
+            if isinstance(result,Exception):
+                errors[name] = safe_error(result)
+            else:
+                data[name] = result
+        largest = (data.get("largest_accounts") or {}).get("value") or []
+        account_addresses = [x.get("address") for x in largest if x.get("address")]
+        parsed_accounts: list[Any] = []
+        if account_addresses:
+            result = await asyncio.gather(
+                fluxrpc_json_rpc(client,"getMultipleAccounts",[account_addresses,{"encoding":"jsonParsed","commitment":"confirmed"}]),
+                return_exceptions=True,
+            )
+            if isinstance(result[0],Exception):
+                errors["account_authorities"] = safe_error(result[0])
+            else:
+                parsed_accounts = (result[0] or {}).get("value") or []
+        account_rows = []
+        top_total = 0.0
+        for index, item in enumerate(largest):
+            parsed = parsed_accounts[index] if index < len(parsed_accounts) else None
+            info = (((parsed or {}).get("data") or {}).get("parsed") or {}).get("info") or {}
+            amount = num(item.get("uiAmountString"))
+            if amount is None:
+                amount = num(item.get("uiAmount"))
+            if amount is not None:
+                top_total += amount
+            account_rows.append({
+                "token_account":item.get("address"),
+                "authority":info.get("owner"),
+                "amount":amount,
+                "decimals":item.get("decimals"),
+                "authority_status":"parsed" if info.get("owner") else "unknown",
+            })
+        supply_value = ((data.get("supply") or {}).get("value") or {})
+        total_supply = num(supply_value.get("uiAmountString"))
+        top_share = (top_total / total_supply * 100) if total_supply and total_supply > 0 else None
+        signatures = data.get("recent_signatures") or []
+        _source_status["fluxrpc_http"] = {"ok":not bool(errors),"configured":True,"checked_at":now_iso(),"error":"partial response" if errors else None}
+        return {
+            "status":"partial" if errors else "available",
+            "source":"FluxRPC Solana JSON-RPC",
+            "mint":mint,
+            "checked_at":now_iso(),
+            "commitment":"confirmed",
+            "context_slot":((data.get("supply") or {}).get("context") or {}).get("slot"),
+            "supply":{"amount":supply_value.get("uiAmountString"),"decimals":supply_value.get("decimals"),"raw_amount":supply_value.get("amount")},
+            "top_token_accounts":account_rows,
+            "top_20_token_accounts_pct_supply":round(top_share,4) if top_share is not None else None,
+            "recent_activity":[{"signature":x.get("signature"),"slot":x.get("slot"),"block_time":x.get("blockTime"),"err":x.get("err"),"confirmation_status":x.get("confirmationStatus")} for x in signatures],
+            "source_errors":errors,
+            "limitations":["Largest token accounts are not equivalent to beneficial owners or independent wallets.","Recent signatures are address activity, not classified buys or sells.","This endpoint does not infer Smart Money or insider status."],
+        }
+
+
 @app.get(f"{API_PREFIX}/security/{{chain}}/{{address}}")
 async def token_security(chain: str, address: str):
     """Return available contract-risk checks. Missing fields mean unknown, not safe."""
@@ -572,6 +770,8 @@ async def sources():
     configured = {
         "DEX Screener": True, "GeckoTerminal": True, "CoinPaprika": True,
         "Binance spot public market data": True,
+        "CCXT public exchanges": True,
+        "FluxRPC Solana HTTP": bool(os.getenv("FLUXRPC_API_KEY")),
         "CoinGecko": bool(os.getenv("COINGECKO_DEMO_API_KEY") or os.getenv("COINGECKO_API_KEY")),
         "CryptoPanic": bool(os.getenv("CRYPTOPANIC_API_KEY")),
         "SEC EDGAR": bool(os.getenv("SEC_CIKS")),
@@ -590,7 +790,9 @@ async def sources():
     aliases = {
         "DEX Screener":["dexscreener_profiles","dexscreener_boosts"],
         "GeckoTerminal":["geckoterminal"], "CoinPaprika":["coinpaprika"],
-        "Binance spot public market data":["binance_spot"], "CoinGecko":["coingecko"],
+        "Binance spot public market data":["binance_spot"],
+        "CCXT public exchanges":[k for k in _source_status if k.startswith("ccxt:")],
+        "FluxRPC Solana HTTP":["fluxrpc_http"], "CoinGecko":["coingecko"],
         "CryptoPanic":["cryptopanic"], "SEC EDGAR":["sec_edgar"], "GDELT":["gdelt_news"],
         "GoPlus Security":["goplus"], "Helius":["helius"], "Birdeye":["birdeye"],
         "RugCheck":["rugcheck"], "Finnhub":["finnhub"], "X API":["x_api"],

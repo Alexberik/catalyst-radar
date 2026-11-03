@@ -454,6 +454,96 @@ async def ccxt_ohlcv(
             pass
 
 
+
+async def fluxrpc_json_rpc(client: httpx.AsyncClient, method: str, params: list[Any]) -> Any:
+    """Call FluxRPC Solana JSON-RPC using a server-side key only."""
+    key = os.getenv("FLUXRPC_API_KEY")
+    if not key:
+        raise RuntimeError("FLUXRPC_API_KEY not configured")
+    base = os.getenv("FLUXRPC_HTTP_URL", "https://eu.fluxrpc.com").rstrip("/")
+    url = base + "?" + str(httpx.QueryParams({"key": key}))
+    started = time.monotonic()
+    response = await client.post(url, json={"jsonrpc":"2.0","id":"catalyst-radar","method":method,"params":params})
+    response.raise_for_status()
+    payload = response.json()
+    if payload.get("error"):
+        raise RuntimeError("FluxRPC JSON-RPC returned an error")
+    _source_status["fluxrpc_http"] = {"ok":True,"configured":True,"checked_at":now_iso(),"latency_ms":round((time.monotonic()-started)*1000),"error":None}
+    return payload.get("result")
+
+@app.get(f"{API_PREFIX}/solana/asset/{{mint}}/snapshot")
+async def solana_asset_snapshot(mint: str, limit: int = Query(default=30, ge=5, le=100)):
+    """Read-only Solana token supply, largest token accounts and recent address activity."""
+    if not os.getenv("FLUXRPC_API_KEY"):
+        _source_status["fluxrpc_http"] = {"ok":False,"configured":False,"checked_at":now_iso(),"error":"FLUXRPC_API_KEY not configured"}
+        return {"status":"not_configured","source":"FluxRPC","mint":mint,"checked_at":now_iso(),"message":"Set FLUXRPC_API_KEY as a server-side backend secret."}
+    headers = {"Accept":"application/json","User-Agent":"CatalystRadar/0.2 read-only research"}
+    async with httpx.AsyncClient(timeout=TIMEOUT, follow_redirects=True, headers=headers) as client:
+        tasks = await asyncio.gather(
+            fluxrpc_json_rpc(client,"getTokenSupply",[mint,{"commitment":"confirmed"}]),
+            fluxrpc_json_rpc(client,"getTokenLargestAccounts",[mint,{"commitment":"confirmed"}]),
+            fluxrpc_json_rpc(client,"getSignaturesForAddress",[mint,{"limit":limit,"commitment":"confirmed"}]),
+            return_exceptions=True,
+        )
+        names = ["supply","largest_accounts","recent_signatures"]
+        data: dict[str, Any] = {}
+        errors: dict[str, str] = {}
+        for name, result in zip(names,tasks):
+            if isinstance(result,Exception):
+                errors[name] = safe_error(result)
+            else:
+                data[name] = result
+        largest = (data.get("largest_accounts") or {}).get("value") or []
+        account_addresses = [x.get("address") for x in largest if x.get("address")]
+        parsed_accounts: list[Any] = []
+        if account_addresses:
+            result = await asyncio.gather(
+                fluxrpc_json_rpc(client,"getMultipleAccounts",[account_addresses,{"encoding":"jsonParsed","commitment":"confirmed"}]),
+                return_exceptions=True,
+            )
+            if isinstance(result[0],Exception):
+                errors["account_authorities"] = safe_error(result[0])
+            else:
+                parsed_accounts = (result[0] or {}).get("value") or []
+        account_rows = []
+        top_total = 0.0
+        for index, item in enumerate(largest):
+            parsed = parsed_accounts[index] if index < len(parsed_accounts) else None
+            info = (((parsed or {}).get("data") or {}).get("parsed") or {}).get("info") or {}
+            amount = num(item.get("uiAmountString"))
+            if amount is None:
+                amount = num(item.get("uiAmount"))
+            if amount is not None:
+                top_total += amount
+            account_rows.append({
+                "token_account":item.get("address"),
+                "authority":info.get("owner"),
+                "amount":amount,
+                "decimals":item.get("decimals"),
+                "authority_status":"parsed" if info.get("owner") else "unknown",
+            })
+        supply_value = ((data.get("supply") or {}).get("value") or {})
+        total_supply = num(supply_value.get("uiAmountString"))
+        top_share = (top_total / total_supply * 100) if total_supply and total_supply > 0 else None
+        signatures = data.get("recent_signatures") or []
+        if not errors:
+            _source_status["fluxrpc_http"] = {"ok":True,"configured":True,"checked_at":now_iso(),"error":None}
+        return {
+            "status":"partial" if errors else "available",
+            "source":"FluxRPC Solana JSON-RPC",
+            "mint":mint,
+            "checked_at":now_iso(),
+            "commitment":"confirmed",
+            "context_slot":((data.get("supply") or {}).get("context") or {}).get("slot"),
+            "supply":{"amount":supply_value.get("uiAmountString"),"decimals":supply_value.get("decimals"),"raw_amount":supply_value.get("amount")},
+            "top_token_accounts":account_rows,
+            "top_20_token_accounts_pct_supply":round(top_share,4) if top_share is not None else None,
+            "recent_activity":[{"signature":x.get("signature"),"slot":x.get("slot"),"block_time":x.get("blockTime"),"err":x.get("err"),"confirmation_status":x.get("confirmationStatus")} for x in signatures],
+            "source_errors":errors,
+            "limitations":["Largest token accounts are not equivalent to beneficial owners or independent wallets.","Recent signatures are address activity, not classified buys or sells.","This endpoint does not infer Smart Money or insider status."],
+        }
+
+
 @app.get(f"{API_PREFIX}/security/{{chain}}/{{address}}")
 async def token_security(chain: str, address: str):
     """Return available contract-risk checks. Missing fields mean unknown, not safe."""
@@ -668,6 +758,7 @@ async def sources():
         "DEX Screener": True, "GeckoTerminal": True, "CoinPaprika": True,
         "Binance spot public market data": True,
         "CCXT public exchanges": True,
+        "FluxRPC Solana HTTP": bool(os.getenv("FLUXRPC_API_KEY")),
         "CoinGecko": bool(os.getenv("COINGECKO_DEMO_API_KEY") or os.getenv("COINGECKO_API_KEY")),
         "CryptoPanic": bool(os.getenv("CRYPTOPANIC_API_KEY")),
         "SEC EDGAR": bool(os.getenv("SEC_CIKS")),
@@ -687,7 +778,8 @@ async def sources():
         "DEX Screener":["dexscreener_profiles","dexscreener_boosts"],
         "GeckoTerminal":["geckoterminal"], "CoinPaprika":["coinpaprika"],
         "Binance spot public market data":["binance_spot"],
-        "CCXT public exchanges":[k for k in _source_status if k.startswith("ccxt:")], "CoinGecko":["coingecko"],
+        "CCXT public exchanges":[k for k in _source_status if k.startswith("ccxt:")],
+        "FluxRPC Solana HTTP":["fluxrpc_http"], "CoinGecko":["coingecko"],
         "CryptoPanic":["cryptopanic"], "SEC EDGAR":["sec_edgar"], "GDELT":["gdelt_news"],
         "GoPlus Security":["goplus"], "Helius":["helius"], "Birdeye":["birdeye"],
         "RugCheck":["rugcheck"], "Finnhub":["finnhub"], "X API":["x_api"],

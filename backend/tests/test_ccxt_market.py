@@ -1,9 +1,8 @@
 from __future__ import annotations
 
 import sys
+import asyncio
 from pathlib import Path
-
-import pytest
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from app import main
@@ -34,11 +33,10 @@ class FakeExchange:
         self.closed = True
 
 
-@pytest.mark.asyncio
-async def test_ccxt_public_ticker_is_normalized_and_closes_client(monkeypatch):
+def test_ccxt_public_ticker_is_normalized_and_closes_client(monkeypatch):
     instance = FakeExchange()
     monkeypatch.setattr(main.ccxt, "binance", lambda config: instance)
-    result = await main.ccxt_exchange_data("binance", ["BTC/USDT"])
+    result = asyncio.run(main.ccxt_exchange_data("binance", ["BTC/USDT"]))
     assert result["status"] == "available"
     assert result["tickers"][0]["symbol"] == "BTC/USDT"
     assert result["tickers"][0]["price"] == 65000
@@ -47,25 +45,22 @@ async def test_ccxt_public_ticker_is_normalized_and_closes_client(monkeypatch):
     assert "apiKey" not in instance.config
 
 
-@pytest.mark.asyncio
-async def test_ccxt_rejects_exchange_outside_allowlist():
-    result = await main.ccxt_exchange_data("untrusted-host", ["BTC/USDT"])
+def test_ccxt_rejects_exchange_outside_allowlist():
+    result = asyncio.run(main.ccxt_exchange_data("untrusted-host", ["BTC/USDT"]))
     assert result["status"] == "unsupported_exchange"
     assert result["tickers"] == []
 
 
-@pytest.mark.asyncio
-async def test_ccxt_ohlcv_returns_candles_and_closes_client(monkeypatch):
+def test_ccxt_ohlcv_returns_candles_and_closes_client(monkeypatch):
     instance = FakeExchange()
     monkeypatch.setattr(main.ccxt, "binance", lambda config: instance)
-    result = await main.ccxt_ohlcv(exchange_id="binance", symbol="BTC/USDT", timeframe="1h", limit=50)
+    result = asyncio.run(main.ccxt_ohlcv(exchange_id="binance", symbol="BTC/USDT", timeframe="1h", limit=50))
     assert result["status"] == "available"
     assert result["candles"][0]["close"] == 65000
     assert result["timeframe"] == "1h"
     assert instance.closed is True
 
 
-@pytest.mark.asyncio
-async def test_ccxt_ohlcv_rejects_unsupported_exchange():
-    result = await main.ccxt_ohlcv(exchange_id="unknown", symbol="BTC/USDT", timeframe="1h", limit=50)
+def test_ccxt_ohlcv_rejects_unsupported_exchange():
+    result = asyncio.run(main.ccxt_ohlcv(exchange_id="unknown", symbol="BTC/USDT", timeframe="1h", limit=50))
     assert result["status"] == "unsupported_exchange"

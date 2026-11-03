@@ -22,6 +22,13 @@ See [backend setup and provider coverage](backend/README.md).
 
 Live site: https://alexberik.github.io/catalyst-radar/
 
+## MAGIC intelligence upgrade (November 2026)
+
+- [Reference repository audit](docs/REFERENCE_REPOSITORY_AUDIT.md) — review of all ten supplied repositories, reusable patterns, licensing notes, model strategy and target architecture.
+- [Provider registry](docs/PROVIDER_REGISTRY.md) — API roles, integration status, secret names, normalized event contract, wallet intelligence, Jupiter quote checks and release gates.
+- The homepage now includes the MAGIC Intelligence Engine overview and the visual identity has moved from blue-black to graphite / teal / copper.
+- These changes do **not** mean FluxRPC Yellowstone, Jupiter quotes, CCXT, a wallet graph, MLflow or forecast models are already connected. Their actual integration requires server-side deployment, provider credentials where applicable, persistent event storage and integration tests.
+
 ## Research and architecture
 
 - [Research blueprint and reference audit](docs/RESEARCH_BLUEPRINT.md) — implementation plan inspired by Vibe-Trading, Fincept Terminal and the Slash/Supabase design references. It documents current capabilities, target architecture, data providers, forecast validation, paper trading, licensing cautions and deployment needs.

@@ -15,6 +15,7 @@ import httpx
 import ccxt.async_support as ccxt
 from fastapi import FastAPI, Query
 from fastapi.middleware.cors import CORSMiddleware
+from app.trading_agent import router as trading_router
 
 APP_VERSION = "0.2.0"
 DB_PATH = os.getenv("DATABASE_PATH", "./data/catalyst_radar.sqlite3")
@@ -359,7 +360,8 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(title="Catalyst Radar Data API", version=APP_VERSION, description="Multi-source market discovery and event-intelligence API. Discovery scores are heuristics, not probabilities.", lifespan=lifespan)
 origins = [x.strip() for x in os.getenv("CORS_ORIGINS", "https://alexberik.github.io,http://localhost:8000,http://127.0.0.1:8000").split(",") if x.strip()]
-app.add_middleware(CORSMiddleware, allow_origins=origins, allow_credentials=False, allow_methods=["GET"], allow_headers=["*"])
+app.add_middleware(CORSMiddleware, allow_origins=origins, allow_credentials=False, allow_methods=["GET", "POST"], allow_headers=["*"])
+app.include_router(trading_router)
 
 
 CCXT_ALLOWED_EXCHANGES = {"binance", "bybit", "okx", "kucoin", "kraken", "gateio"}

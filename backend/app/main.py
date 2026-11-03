@@ -460,16 +460,27 @@ async def fluxrpc_json_rpc(client: httpx.AsyncClient, method: str, params: list[
     key = os.getenv("FLUXRPC_API_KEY")
     if not key:
         raise RuntimeError("FLUXRPC_API_KEY not configured")
+    cache_key = "fluxrpc:" + method + ":" + json.dumps(params, sort_keys=True)
+    cached = _cache.get(cache_key)
+    if cached and time.time() - cached[0] < CACHE_TTL:
+        _source_status["fluxrpc_http"] = {"ok":True,"configured":True,"cached":True,"checked_at":now_iso(),"error":None}
+        return cached[1]
     base = os.getenv("FLUXRPC_HTTP_URL", "https://eu.fluxrpc.com").rstrip("/")
     url = base + "?" + str(httpx.QueryParams({"key": key}))
     started = time.monotonic()
-    response = await client.post(url, json={"jsonrpc":"2.0","id":"catalyst-radar","method":method,"params":params})
-    response.raise_for_status()
-    payload = response.json()
-    if payload.get("error"):
-        raise RuntimeError("FluxRPC JSON-RPC returned an error")
-    _source_status["fluxrpc_http"] = {"ok":True,"configured":True,"checked_at":now_iso(),"latency_ms":round((time.monotonic()-started)*1000),"error":None}
-    return payload.get("result")
+    try:
+        response = await client.post(url, json={"jsonrpc":"2.0","id":"catalyst-radar","method":method,"params":params})
+        response.raise_for_status()
+        payload = response.json()
+        if payload.get("error"):
+            raise RuntimeError("FluxRPC JSON-RPC returned an error")
+        result = payload.get("result")
+        _cache[cache_key] = (time.time(), result)
+        _source_status["fluxrpc_http"] = {"ok":True,"configured":True,"cached":False,"checked_at":now_iso(),"latency_ms":round((time.monotonic()-started)*1000),"error":None}
+        return result
+    except Exception as exc:
+        _source_status["fluxrpc_http"] = {"ok":False,"configured":True,"checked_at":now_iso(),"error":safe_error(exc)}
+        raise
 
 @app.get(f"{API_PREFIX}/solana/asset/{{mint}}/snapshot")
 async def solana_asset_snapshot(mint: str, limit: int = Query(default=30, ge=5, le=100)):

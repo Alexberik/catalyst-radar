@@ -15,7 +15,7 @@ import ccxt.async_support as ccxt
 from fastapi import FastAPI, Query
 from fastapi.middleware.cors import CORSMiddleware
 
-APP_VERSION = "0.1.0"
+APP_VERSION = "0.2.0"
 DB_PATH = os.getenv("DATABASE_PATH", "./data/catalyst_radar.sqlite3")
 API_PREFIX = "/api/v1"
 NETWORKS = [x.strip() for x in os.getenv("GECKOTERMINAL_NETWORKS", "solana,base,eth,bsc,arbitrum").split(",") if x.strip()]

@@ -101,3 +101,9 @@ def test_fluxrpc_json_rpc_requires_server_key(monkeypatch):
     monkeypatch.delenv("FLUXRPC_API_KEY", raising=False)
     with pytest.raises(RuntimeError):
         asyncio.run(main.fluxrpc_json_rpc(FakeRpcClient(), "getSlot", []))
+
+
+def test_fluxrpc_snapshot_rejects_invalid_mint_before_network(monkeypatch):
+    monkeypatch.delenv("FLUXRPC_API_KEY", raising=False)
+    result = asyncio.run(main.solana_asset_snapshot("not-a-solana-address", limit=20))
+    assert result["status"] == "invalid_mint_address"

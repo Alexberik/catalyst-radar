@@ -185,3 +185,136 @@ button { font: inherit; cursor: pointer; border: none; background: none; color: 
   .section { padding: 36px 16px; }
   .status-stats strong { font-size: 16px; }
 }
+
+
+/* === CATALYST RADAR · INSTITUTIONAL TERMINAL REDESIGN === */
+:root {
+  --canvas:#090c0f;
+  --surface:#10161b;
+  --elevated:#151e24;
+  --cobalt:#1a2830;
+  --border:#26343b;
+  --border-soft:rgba(120,157,164,.16);
+  --text:#f4f7f8;
+  --text-secondary:#c0cbd0;
+  --text-muted:#93a2a9;
+  --signal:#43d7c5;
+  --signal-dim:#238f88;
+  --green:#43d58b;
+  --amber:#e8ad62;
+  --red:#ff6875;
+  --copper:#c99665;
+  --max:1280px;
+  --radius:14px;
+  --radius-sm:9px;
+}
+body {
+  background:
+    radial-gradient(ellipse at 78% -12%,rgba(35,115,111,.16),transparent 34rem),
+    radial-gradient(ellipse at 5% 18%,rgba(157,105,58,.08),transparent 28rem),
+    var(--canvas);
+}
+.ambient {
+  background-image:linear-gradient(rgba(67,215,197,.025) 1px,transparent 1px),linear-gradient(90deg,rgba(67,215,197,.025) 1px,transparent 1px);
+  background-size:56px 56px;
+}
+.topbar {
+  padding:11px clamp(16px,3vw,42px);
+  background:rgba(8,13,17,.91);
+  border-bottom-color:rgba(117,157,163,.2);
+}
+.brand {gap:11px}
+.brand-mark {
+  width:34px;height:34px;border-radius:10px;
+  background:linear-gradient(145deg,#52e0ce,#167c78);
+  box-shadow:0 0 24px rgba(67,215,197,.2);
+}
+.brand-mark::after {inset:8px;border:1px solid rgba(5,30,32,.7);border-radius:3px}
+.brand-text strong {font-size:13px;letter-spacing:.12em;color:#f5f7f7}
+.brand-text span {font-size:12px;letter-spacing:.19em;color:var(--copper);font-weight:700}
+.brand-text small {font-size:8px;letter-spacing:.12em;color:#aab8bd}
+.nav {gap:3px}
+.nav a {font-size:12px;color:#aab7bd;padding:7px 9px;white-space:nowrap}
+.nav a:hover,.nav a:focus-visible {color:#fff;background:rgba(67,215,197,.09)}
+.hero {padding:clamp(42px,6vw,84px) clamp(16px,3vw,42px) 48px}
+.hero-inner {max-width:var(--max);grid-template-columns:minmax(0,1.45fr) minmax(290px,.8fr);gap:clamp(28px,5vw,72px)}
+.eyebrow {color:#9eafb5;letter-spacing:.14em;font-size:10px}
+.hero h1 {font-family:var(--font-sans);font-size:clamp(42px,5.5vw,72px);font-weight:650;letter-spacing:-.055em;line-height:.99}
+.hero h1 em {font-style:normal;color:var(--copper)}
+.lead {max-width:620px;font-size:16px;line-height:1.7;color:#c4d0d4}
+.btn {border-radius:9px;font-size:13px}
+.btn-primary {background:linear-gradient(135deg,#48ddca,#238e89);color:#061513;box-shadow:0 8px 26px rgba(35,160,151,.16);font-weight:700}
+.btn-primary:hover {background:linear-gradient(135deg,#6be9d8,#2aa99f)}
+.btn-ghost {border-color:#40545b;color:#dce5e7}
+.btn-ghost:hover {border-color:var(--signal);background:rgba(67,215,197,.06)}
+.hero-tags span {background:rgba(18,28,33,.8);border-color:#2a3a40;color:#b8c5c9}
+.status-card,.card,.coming-card,.health-item,.table-wrap,.sources-table {
+  background:linear-gradient(155deg,rgba(19,28,34,.98),rgba(13,19,23,.98));
+  border:1px solid rgba(115,151,157,.19);
+  box-shadow:0 14px 38px rgba(0,0,0,.16);
+  border-radius:14px;
+}
+.status-card {padding:22px}
+.radar-face {background:radial-gradient(circle at center,#123c3d 0%,#0c171b 72%);border-color:rgba(67,215,197,.42)}
+.radar-core {background:#0b171a;border-color:rgba(67,215,197,.5)}
+.section {max-width:var(--max);padding:clamp(34px,4vw,54px) clamp(16px,3vw,42px);border-top-color:rgba(115,151,157,.16)}
+.section-head {display:grid;grid-template-columns:auto 1fr;column-gap:12px;align-items:baseline;margin-bottom:24px}
+.section-num {grid-column:1;grid-row:1;margin:0;color:var(--copper)}
+.section-head h2 {grid-column:2;grid-row:1;font-family:var(--font-sans);font-size:clamp(21px,2vw,27px);font-weight:650;letter-spacing:-.025em;color:#f1f5f6;margin:0}
+.section-desc {grid-column:2;margin-top:7px;max-width:760px;line-height:1.6;color:#9eafb5}
+.card {padding:18px}
+.card-head {color:#dce5e7}
+.chart-area {background:#0c1317;border-color:#26363d;border-radius:10px}
+.pipeline {grid-template-columns:repeat(4,minmax(0,1fr))}
+.pipe-step {background:#0d1519;border-color:#293940}
+.health-item {padding:13px 15px}
+.health-item strong {color:#e4ecee;letter-spacing:.035em}
+.health-item small {color:#91a1a8}
+.toolbar {align-items:flex-start}
+.chip {border-color:#35474e;color:#aebbc0;background:#10191e}
+.chip:hover,.chip.active {border-color:var(--signal);color:#5ce0d0;background:rgba(67,215,197,.1)}
+.data-table {min-width:760px}
+.data-table th {color:#9aabb1;background:#111a1f}
+.data-table td {color:#d1dadd}
+.data-table tr:hover td {background:rgba(67,215,197,.045)}
+.coming-card h3 {color:#edf2f3}
+.coming-card p,.card-body {color:#a5b3b8;line-height:1.65}
+.coming-badge {color:var(--amber);border-color:rgba(232,173,98,.32);background:rgba(232,173,98,.08)}
+.tag.green {color:var(--green)}
+.tag.amber {color:var(--amber)}
+.tag.red {color:var(--red)}
+.src-row {border-bottom-color:rgba(115,151,157,.14)}
+.src-name {color:#e1e9eb}
+.src-type {color:#91a2a9}
+.footer {border-top-color:rgba(115,151,157,.18)}
+.footer-brand strong {letter-spacing:.1em;color:#e7eff0}
+.footer-meta {flex-wrap:wrap}
+.live-pill {color:var(--green);border-color:rgba(67,213,139,.3)}
+@media (max-width:1100px) {
+  .topbar {flex-wrap:wrap}
+  .nav {order:3;width:100%;margin:0;overflow-x:auto;flex-wrap:nowrap;padding:2px 0 5px;scrollbar-width:thin}
+  .top-actions {margin-left:auto}
+}
+@media (max-width:900px) {
+  .hero-inner {grid-template-columns:1fr}
+  .hero-status {order:-1;max-width:100%}
+  .radar-visual.ship-radar {width:118px;height:118px}
+  .pulse-grid,.majors-grid,.coming-grid,.event-grid,.health-grid {grid-template-columns:repeat(2,minmax(0,1fr))}
+  .pipeline {grid-template-columns:repeat(2,minmax(0,1fr))}
+  .pulse-grid .wide,.pipeline-card,.majors-grid .wide {grid-column:1/-1}
+}
+@media (max-width:600px) {
+  .topbar {padding:10px 14px}
+  .nav a {padding:7px 10px}
+  .hero {padding:32px 16px 28px}
+  .hero h1 {font-size:clamp(38px,11vw,54px)}
+  .section {padding:32px 16px}
+  .section-head {column-gap:8px}
+  .section-head h2 {font-size:21px}
+  .pulse-grid,.majors-grid,.coming-grid,.event-grid,.health-grid,.pipeline {grid-template-columns:1fr}
+  .pulse-grid .wide,.pipeline-card,.majors-grid .wide {grid-column:auto}
+  .status-stats strong {font-size:17px}
+  .toolbar-right {width:100%;justify-content:space-between}
+  .footer-inner {align-items:flex-start}
+  .footer-meta {font-size:10px}
+}

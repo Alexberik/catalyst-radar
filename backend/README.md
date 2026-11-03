@@ -29,10 +29,12 @@ Open `http://localhost:8000/docs`.
 - `GET /api/v1/security/{chain}/{address}` — GoPlus EVM contract checks or RugCheck Solana risk summary; optional Helius/Birdeye enrichment.
 - `GET /api/v1/biotech/events?query=...` — ClinicalTrials.gov and openFDA drug application records.
 - `GET /api/v1/equities/quotes?symbols=AAPL,RTX,LMT` — Finnhub quotes when a server-side key is configured.
+- `GET /api/v1/markets/ccxt?exchanges=binance,bybit&symbols=BTC/USDT,ETH/USDT` — public-only normalized CEX tickers through CCXT.
+- `GET /api/v1/markets/ccxt/ohlcv?exchange_id=binance&symbol=BTC/USDT&timeframe=1h&limit=200` — public OHLCV candles for 5m, 30m, 1h or 1d research intervals.
 
 ## Sources and limitations
 
-**Implemented requests:** DEX Screener profiles/boosts, GeckoTerminal new pools, CoinPaprika tickers, Binance 24-hour spot tickers, GDELT news discovery, GoPlus token security for supported EVM chains, RugCheck summaries for Solana, ClinicalTrials.gov, and openFDA drug-application records. CoinGecko and CryptoPanic activate only when server-side keys are configured; SEC EDGAR activates only when `SEC_CIKS` is set and uses `SEC_USER_AGENT`. Finnhub quotes require `FINNHUB_API_KEY`. X, Reddit, Helius and Birdeye integrations activate when their server-side credentials are configured.
+**Implemented requests:** DEX Screener profiles/boosts, GeckoTerminal new pools, CoinPaprika tickers, Binance 24-hour spot tickers, CCXT public CEX ticker/OHLCV adapters (allowlisted exchanges; no private credentials or order methods), GDELT news discovery, GoPlus token security for supported EVM chains, RugCheck summaries for Solana, ClinicalTrials.gov, and openFDA drug-application records. CoinGecko and CryptoPanic activate only when server-side keys are configured; SEC EDGAR activates only when `SEC_CIKS` is set and uses `SEC_USER_AGENT`. Finnhub quotes require `FINNHUB_API_KEY`. X, Reddit, Helius and Birdeye integrations activate when their server-side credentials are configured.
 
 **Still prepared, not yet queried:** Massive/Polygon and Telegram channel ingestion. A Telegram bot does not provide universal access to arbitrary public channels; only add channels and collection methods for which access is permitted. Verify provider terms and field availability before production use.
 

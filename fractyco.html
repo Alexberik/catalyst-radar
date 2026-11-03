@@ -9,223 +9,47 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <style>
-:root {
-  --bg: #0b1120;
-  --sidebar: #0f172a;
-  --card: #111827;
-  --border: #1e293b;
-  --text: #f1f5f9;
-  --muted: #94a3b8;
-  --teal: #2dd4bf;
-  --green: #34d399;
-  --red: #f87171;
-  --amber: #fbbf24;
-  --blue: #60a5fa;
-}
-* { box-sizing: border-box; margin: 0; padding: 0; }
-body {
-  font-family: Inter, system-ui, sans-serif;
-  background: var(--bg);
-  color: var(--text);
-  min-height: 100vh;
-  display: flex;
-}
-.sidebar {
-  width: 220px;
-  background: var(--sidebar);
-  border-right: 1px solid var(--border);
-  padding: 20px 14px;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  flex-shrink: 0;
-}
-.logo {
-  font-weight: 800;
-  font-size: 15px;
-  letter-spacing: 1px;
-  padding: 8px 10px 20px;
-  color: var(--teal);
-}
-.logo span { color: var(--text); }
-.nav-item {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 10px 12px;
-  border-radius: 8px;
-  color: var(--muted);
-  font-size: 13px;
-  cursor: pointer;
-  transition: .15s;
-  text-decoration: none;
-}
-.nav-item:hover, .nav-item.active {
-  background: #1e293b;
-  color: var(--text);
-}
-.nav-item.active { color: var(--teal); }
-.main {
-  flex: 1;
-  padding: 20px 24px;
-  overflow-x: hidden;
-}
-.topbar {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 22px;
-  flex-wrap: wrap;
-  gap: 12px;
-}
-.topbar h1 { font-size: 20px; font-weight: 700; }
-.topbar .badge {
-  font-size: 11px;
-  background: #134e4a;
-  color: var(--teal);
-  padding: 4px 10px;
-  border-radius: 20px;
-  font-weight: 600;
-}
-.back-link {
-  font-size: 13px;
-  color: var(--teal);
-  text-decoration: none;
-  border: 1px solid #2dd4bf44;
-  padding: 6px 12px;
-  border-radius: 8px;
-}
-.back-link:hover { background: #2dd4bf18; }
-.grid-top {
-  display: grid;
-  grid-template-columns: 1.6fr 1fr 1fr;
-  gap: 16px;
-  margin-bottom: 16px;
-}
-.card {
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: 14px;
-  padding: 18px;
-}
-.card-title {
-  font-size: 12px;
-  color: var(--muted);
-  font-weight: 500;
-  margin-bottom: 12px;
-  text-transform: uppercase;
-  letter-spacing: .5px;
-}
-.big-value { font-size: 28px; font-weight: 700; margin-bottom: 4px; }
-.change { font-size: 13px; font-weight: 600; }
-.change.up { color: var(--green); }
-.chart-wrap { height: 180px; position: relative; }
-.alloc-wrap { display: flex; align-items: center; gap: 16px; }
-.alloc-legend { flex: 1; font-size: 12px; }
-.alloc-item {
-  display: flex;
-  justify-content: space-between;
-  margin-bottom: 6px;
-  color: var(--muted);
-}
-.alloc-item span:last-child { color: var(--text); font-weight: 600; }
-.holding-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 8px 0;
-  border-bottom: 1px solid #1e293b;
-  font-size: 13px;
-}
-.holding-row:last-child { border-bottom: none; }
-.holding-left { display: flex; align-items: center; gap: 10px; }
-.dot { width: 8px; height: 8px; border-radius: 50%; }
-.grid-bottom {
-  display: grid;
-  grid-template-columns: 1.4fr 1fr;
-  gap: 16px;
-  margin-bottom: 16px;
-}
-table { width: 100%; border-collapse: collapse; font-size: 13px; }
-th {
-  text-align: left;
-  color: var(--muted);
-  font-weight: 500;
-  font-size: 11px;
-  text-transform: uppercase;
-  padding: 8px 6px;
-  border-bottom: 1px solid var(--border);
-}
-td { padding: 11px 6px; border-bottom: 1px solid #1e293b; }
-.tag {
-  font-size: 11px;
-  font-weight: 600;
-  padding: 3px 8px;
-  border-radius: 20px;
-}
-.tag.strong { background: #134e4a; color: var(--teal); }
-.tag.hold { background: #14532d; color: var(--green); }
-.tag.watch { background: #422006; color: var(--amber); }
-.plan-box {
-  background: #0f172a;
-  border-radius: 10px;
-  padding: 14px;
-  margin-bottom: 12px;
-}
-.plan-box h4 { font-size: 13px; margin-bottom: 8px; }
-.plan-box ul {
-  padding-left: 16px;
-  color: var(--muted);
-  font-size: 12px;
-  line-height: 1.6;
-}
-.upload-zone {
-  border: 1px dashed #334155;
-  border-radius: 12px;
-  padding: 28px;
-  text-align: center;
-  background: #0f172a;
-  margin-top: 8px;
-}
-.upload-zone.drag { border-color: var(--teal); background: #134e4a33; }
-.upload-zone input { margin-top: 12px; color: var(--muted); }
-.btn {
-  border: 0;
-  border-radius: 8px;
-  padding: 10px 16px;
-  font-weight: 600;
-  cursor: pointer;
-  font-size: 13px;
-}
-.btn-primary { background: var(--teal); color: #0b1120; }
-.btn-secondary { background: #1e293b; color: var(--text); border: 1px solid #334155; }
-.note {
-  font-size: 12px;
-  color: #94a3b8;
-  margin-top: 10px;
-  line-height: 1.5;
-}
-@media (max-width: 1100px) {
-  .grid-top, .grid-bottom { grid-template-columns: 1fr; }
-  .sidebar { display: none; }
-}
+:root{--bg:#0b1120;--sidebar:#0f172a;--card:#111827;--border:#1e293b;--text:#f1f5f9;--muted:#94a3b8;--teal:#2dd4bf;--green:#34d399;--red:#f87171;--amber:#fbbf24;--blue:#60a5fa}
+*{box-sizing:border-box;margin:0;padding:0}body{font-family:Inter,system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex}
+.sidebar{width:220px;background:var(--sidebar);border-right:1px solid var(--border);padding:20px 14px;display:flex;flex-direction:column;gap:6px;flex-shrink:0}
+.logo{font-weight:800;font-size:15px;letter-spacing:1px;padding:8px 10px 20px;color:var(--teal)}.logo span{color:var(--text)}
+.nav-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:8px;color:var(--muted);font-size:13px;text-decoration:none;transition:.15s}
+.nav-item:hover,.nav-item.active{background:#1e293b;color:var(--text)}.nav-item.active{color:var(--teal)}
+.main{flex:1;padding:20px 24px;overflow-x:hidden}
+.topbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;flex-wrap:wrap;gap:12px}
+.topbar h1{font-size:20px;font-weight:700}.badge{font-size:11px;background:#134e4a;color:var(--teal);padding:4px 10px;border-radius:20px;font-weight:600}
+.back-link{font-size:13px;color:var(--teal);text-decoration:none;border:1px solid #2dd4bf44;padding:6px 12px;border-radius:8px}
+.grid-top{display:grid;grid-template-columns:1.5fr 1fr 1fr;gap:14px;margin-bottom:14px}
+.card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:16px}
+.card-title{font-size:11px;color:var(--muted);font-weight:500;margin-bottom:10px;text-transform:uppercase;letter-spacing:.5px}
+.big-value{font-size:26px;font-weight:700;margin-bottom:2px}.change{font-size:13px;font-weight:600}.change.up{color:var(--green)}.change.down{color:var(--red)}
+.chart-wrap{height:160px;position:relative}
+.alloc-wrap{display:flex;align-items:center;gap:12px}.alloc-legend{flex:1;font-size:11px}
+.alloc-item{display:flex;justify-content:space-between;margin-bottom:4px;color:var(--muted)}.alloc-item span:last-child{color:var(--text);font-weight:600}
+.holding-row{display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid #1e293b;font-size:12px}.holding-row:last-child{border-bottom:none}
+.dot{width:7px;height:7px;border-radius:50%;display:inline-block;margin-right:8px}
+.grid-bottom{display:grid;grid-template-columns:1.5fr 1fr;gap:14px;margin-bottom:14px}
+table{width:100%;border-collapse:collapse;font-size:12px}th{text-align:left;color:var(--muted);font-weight:500;font-size:10px;text-transform:uppercase;padding:7px 5px;border-bottom:1px solid var(--border)}td{padding:9px 5px;border-bottom:1px solid #1e293b}
+.tag{font-size:10px;font-weight:600;padding:2px 7px;border-radius:12px}.tag.strong{background:#134e4a;color:var(--teal)}.tag.hold{background:#14532d;color:var(--green)}.tag.watch{background:#422006;color:var(--amber)}
+.plan-box{background:#0f172a;border-radius:10px;padding:12px;margin-bottom:10px}.plan-box h4{font-size:12px;margin-bottom:6px}.plan-box ul{padding-left:14px;color:var(--muted);font-size:11px;line-height:1.55}
+.news{font-size:12px;color:var(--muted);line-height:1.5;margin-top:6px}.news b{color:var(--text)}
+@media(max-width:1100px){.grid-top,.grid-bottom{grid-template-columns:1fr}.sidebar{display:none}}
 </style>
 </head>
 <body>
-
 <aside class="sidebar">
   <div class="logo">MAGIC <span>FRACTYCO</span></div>
   <a class="nav-item active" href="#">Dashboard</a>
   <a class="nav-item" href="./index.html">← Catalyst Radar</a>
   <div style="flex:1"></div>
-  <div class="nav-item" style="font-size:11px;color:#64748b">Demo only · No real money</div>
+  <div class="nav-item" style="font-size:11px;color:#64748b">Updated 03 Nov 2026</div>
 </aside>
 
 <div class="main">
   <div class="topbar">
     <div>
-      <h1>Demo Trading Sprint · Quarter 3</h1>
-      <div style="font-size:12px;color:var(--muted);margin-top:2px">Alex B. · Live snapshot</div>
+      <h1>Demo Trading Sprint · Q3 / 8</h1>
+      <div style="font-size:12px;color:var(--muted);margin-top:2px">Alex B. · 126 players · next price change 00:00</div>
     </div>
     <div style="display:flex;gap:10px;align-items:center">
       <a class="back-link" href="./index.html">← Catalyst Radar</a>
@@ -237,18 +61,14 @@ td { padding: 11px 6px; border-bottom: 1px solid #1e293b; }
     <div class="card">
       <div class="card-title">Portfolio Value</div>
       <div class="big-value">S$ 103,305</div>
-      <div class="change up">+S$ 3,305 (+3.31%) from start</div>
-      <div class="chart-wrap" style="margin-top:16px">
-        <canvas id="equityChart"></canvas>
-      </div>
+      <div class="change up">+S$ 3,305 (+3.31%) · Day +2.61%</div>
+      <div class="chart-wrap" style="margin-top:12px"><canvas id="equityChart"></canvas></div>
     </div>
 
     <div class="card">
       <div class="card-title">Asset Allocation</div>
       <div class="alloc-wrap">
-        <div style="width:120px;height:120px">
-          <canvas id="allocChart"></canvas>
-        </div>
+        <div style="width:110px;height:110px"><canvas id="allocChart"></canvas></div>
         <div class="alloc-legend">
           <div class="alloc-item"><span>Shida Sunfield</span><span>19.3%</span></div>
           <div class="alloc-item"><span>West Orchard</span><span>19.0%</span></div>
@@ -262,27 +82,13 @@ td { padding: 11px 6px; border-bottom: 1px solid #1e293b; }
     </div>
 
     <div class="card">
-      <div class="card-title">Key Stats</div>
-      <div class="holding-row">
-        <div class="holding-left"><div class="dot" style="background:var(--teal)"></div> Free Cash</div>
-        <div>S$ 375</div>
-      </div>
-      <div class="holding-row">
-        <div class="holding-left"><div class="dot" style="background:var(--green)"></div> Unrealized PnL</div>
-        <div style="color:var(--green)">S$ 7,621</div>
-      </div>
-      <div class="holding-row">
-        <div class="holding-left"><div class="dot" style="background:var(--amber)"></div> Commissions</div>
-        <div>S$ 613</div>
-      </div>
-      <div class="holding-row">
-        <div class="holding-left"><div class="dot" style="background:var(--red)"></div> Gap to Top-3</div>
-        <div style="color:var(--amber)">~7.2%</div>
-      </div>
-      <div class="holding-row">
-        <div class="holding-left"><div class="dot" style="background:var(--blue)"></div> Rank</div>
-        <div style="font-weight:700">#51 / ~79</div>
-      </div>
+      <div class="card-title">Key Stats & Gap</div>
+      <div class="holding-row"><span><span class="dot" style="background:var(--teal)"></span>Free Cash</span><span>S$ 375</span></div>
+      <div class="holding-row"><span><span class="dot" style="background:var(--green)"></span>Unrealized</span><span style="color:var(--green)">S$ 7,621</span></div>
+      <div class="holding-row"><span><span class="dot" style="background:var(--amber)"></span>Commissions</span><span>S$ 613</span></div>
+      <div class="holding-row"><span><span class="dot" style="background:var(--blue)"></span>To #50</span><span style="color:var(--amber)">S$ 58</span></div>
+      <div class="holding-row"><span><span class="dot" style="background:var(--red)"></span>To Top-39</span><span style="color:var(--amber)">S$ 921</span></div>
+      <div class="holding-row"><span><span class="dot" style="background:#a78bfa"></span>Rank</span><span style="font-weight:700">#51 / 81</span></div>
     </div>
   </div>
 
@@ -290,226 +96,79 @@ td { padding: 11px 6px; border-bottom: 1px solid #1e293b; }
     <div class="card">
       <div class="card-title">Current Holdings</div>
       <table>
-        <thead>
-          <tr>
-            <th>Project</th>
-            <th>Value</th>
-            <th>Day</th>
-            <th>Weight</th>
-            <th>Status</th>
-          </tr>
-        </thead>
+        <thead><tr><th>Project</th><th>Value</th><th>Day</th><th>From start</th><th>W%</th><th>Status</th></tr></thead>
         <tbody>
-          <tr>
-            <td><strong>Shida Sunfield</strong></td>
-            <td>S$ 19,934</td>
-            <td style="color:var(--green)">+2.66%</td>
-            <td>19.3%</td>
-            <td><span class="tag hold">Hold</span></td>
-          </tr>
-          <tr>
-            <td><strong>West Orchard Hazelnuts</strong></td>
-            <td>S$ 19,594</td>
-            <td>−0.06%</td>
-            <td>19.0%</td>
-            <td><span class="tag watch">Watch</span></td>
-          </tr>
-          <tr>
-            <td><strong>Steel Yard Workshops</strong></td>
-            <td>S$ 18,226</td>
-            <td>−0.29%</td>
-            <td>17.6%</td>
-            <td><span class="tag watch">Watch</span></td>
-          </tr>
-          <tr>
-            <td><strong>East Roof Solar Pool</strong></td>
-            <td>S$ 16,424</td>
-            <td style="color:var(--green)">+3.85%</td>
-            <td>15.9%</td>
-            <td><span class="tag strong">Strong</span></td>
-          </tr>
-          <tr>
-            <td><strong>Urban Signal Rooftops</strong></td>
-            <td>S$ 16,121</td>
-            <td style="color:var(--green)">+4.95%</td>
-            <td>15.6%</td>
-            <td><span class="tag strong">Strong</span></td>
-          </tr>
-          <tr>
-            <td><strong>North Grid Battery</strong></td>
-            <td>S$ 11,210</td>
-            <td style="color:var(--green)">+3.82%</td>
-            <td>10.9%</td>
-            <td><span class="tag strong">Strong</span></td>
-          </tr>
-          <tr>
-            <td><strong>Lisi Vertical Greens</strong></td>
-            <td>S$ 1,421</td>
-            <td style="color:var(--green)">+0.77%</td>
-            <td>1.4%</td>
-            <td><span class="tag hold">Hold</span></td>
-          </tr>
+          <tr><td><strong>Shida Sunfield</strong></td><td>19,934</td><td style="color:var(--green)">+2.66%</td><td>+0.67%</td><td>19.3%</td><td><span class="tag hold">Hold</span></td></tr>
+          <tr><td><strong>West Orchard Hazelnuts</strong></td><td>19,594</td><td>−0.06%</td><td>−0.70%</td><td>19.0%</td><td><span class="tag watch">Watch</span></td></tr>
+          <tr><td><strong>Steel Yard Workshops</strong></td><td>18,226</td><td>−0.29%</td><td>+3.29%</td><td>17.6%</td><td><span class="tag watch">Watch</span></td></tr>
+          <tr><td><strong>East Roof Solar Pool</strong></td><td>16,424</td><td style="color:var(--green)">+3.85%</td><td>+9.50%</td><td>15.9%</td><td><span class="tag strong">Strong</span></td></tr>
+          <tr><td><strong>Urban Signal Rooftops</strong></td><td>16,121</td><td style="color:var(--green)">+4.95%</td><td>+7.47%</td><td>15.6%</td><td><span class="tag strong">Strong + News</span></td></tr>
+          <tr><td><strong>North Grid Battery</strong></td><td>11,210</td><td style="color:var(--green)">+3.82%</td><td>+12.10%</td><td>10.9%</td><td><span class="tag strong">Strong</span></td></tr>
+          <tr><td><strong>Lisi Vertical Greens</strong></td><td>1,421</td><td style="color:var(--green)">+0.77%</td><td>+0.44%</td><td>1.4%</td><td><span class="tag hold">Hold</span></td></tr>
         </tbody>
       </table>
     </div>
 
     <div class="card">
-      <div class="card-title">Action Plan</div>
+      <div class="card-title">Action Plan + News</div>
       <div class="plan-box">
         <h4 style="color:var(--teal)">Keep / Strengthen</h4>
         <ul>
-          <li>Urban Signal Rooftops (+4.95%)</li>
-          <li>East Roof Solar Pool (+3.85%)</li>
-          <li>North Grid Battery (+3.82%)</li>
+          <li>Urban Signal Rooftops (+4.95%, news today)</li>
+          <li>East Roof Solar Pool (+3.85%, +9.5% start)</li>
+          <li>North Grid Battery (+3.82%, +12.1% start)</li>
           <li>Shida Sunfield (stable)</li>
         </ul>
       </div>
       <div class="plan-box">
-        <h4 style="color:var(--amber)">Watch / Reduce if weak</h4>
+        <h4 style="color:var(--amber)">Watch / Trim if weak</h4>
         <ul>
-          <li>West Orchard Hazelnuts</li>
-          <li>Steel Yard Workshops</li>
-          <li>При просадке — частично продавать и добавлять в сильные</li>
+          <li>West Orchard Hazelnuts (−0.06% day)</li>
+          <li>Steel Yard Workshops (−0.29% day)</li>
         </ul>
       </div>
       <div class="plan-box">
-        <h4 style="color:var(--muted)">Cash</h4>
+        <h4 style="color:var(--green)">Strong candidates (not owned)</h4>
         <ul>
-          <li>Свободно только S$ 375</li>
-          <li>Новая ротация только после продажи части слабых позиций</li>
+          <li>Gonio Tide Courtyard +3.05% / +15.9%</li>
+          <li>Northline Quarter +3.06% / +12.9%</li>
+          <li>Cedar Balcony +3.65% / +9.9%</li>
+          <li>University Terrace +3.13% / +7.5%</li>
         </ul>
+      </div>
+      <div class="news">
+        <b>News today:</b> Urban Signal (your project) — occupancy/revenue update. National Bank raised rate +0.5% (tighter credit for all). Prices change at 00:00.
       </div>
     </div>
   </div>
 
-  <!-- Screenshot upload -->
   <div class="card">
-    <div class="card-title">Update data via screenshots</div>
-    <p class="note">Загрузи свежие скриншоты Dashboard / Portfolio / Leaderboard. Данные обрабатываются локально в браузере. После загрузки можно скопировать текст и прислать мне для обновления отчёта.</p>
-    <div class="upload-zone" id="drop">
-      <div style="font-weight:600;margin-bottom:6px">Перетащи скриншоты сюда</div>
-      <div style="color:var(--muted);font-size:13px">или выбери файлы</div>
-      <input type="file" id="files" accept="image/png,image/jpeg,image/webp" multiple>
-      <div style="margin-top:14px;display:flex;gap:8px;justify-content:center;flex-wrap:wrap">
-        <button class="btn btn-primary" id="analyzeBtn">Распознать</button>
-        <button class="btn btn-secondary" id="clearBtn">Очистить</button>
-      </div>
-    </div>
-    <div id="preview" style="display:flex;flex-wrap:wrap;gap:10px;margin-top:14px"></div>
-    <pre id="ocrResult" style="margin-top:14px;background:#0f172a;border:1px solid var(--border);border-radius:10px;padding:14px;font-size:12px;color:var(--muted);white-space:pre-wrap;max-height:220px;overflow:auto;display:none"></pre>
+    <div class="card-title">Leaderboard snapshot (Top-3 & your gap)</div>
+    <table>
+      <thead><tr><th>#</th><th>Player</th><th>Return</th><th>Value</th><th>Prize</th></tr></thead>
+      <tbody>
+        <tr><td>1</td><td>Luka Kv.</td><td style="color:var(--green)">+11.80%</td><td>111,798</td><td>₾5,000</td></tr>
+        <tr><td>2</td><td>Noe S.</td><td style="color:var(--green)">+11.45%</td><td>111,452</td><td>₾2,000</td></tr>
+        <tr><td>3</td><td>მარიამ ჯ.</td><td style="color:var(--green)">+10.17%</td><td>110,166</td><td>₾500</td></tr>
+        <tr><td>50</td><td>Levani Y.</td><td>+3.36%</td><td>103,363</td><td>—</td></tr>
+        <tr style="background:#134e4a33"><td><b>51</b></td><td><b>Alex B. (you)</b></td><td><b>+3.31%</b></td><td><b>103,305</b></td><td>—</td></tr>
+      </tbody>
+    </table>
+    <div class="news" style="margin-top:10px">До #50 осталось всего <b>S$ 58</b>. До призовой зоны (топ-39) — <b>S$ 921</b>.</div>
   </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 <script>
-// Charts
-const eqCtx = document.getElementById('equityChart').getContext('2d');
-new Chart(eqCtx, {
-  type: 'line',
-  data: {
-    labels: ['Start', 'Day 1', 'Q3 mid', 'Now'],
-    datasets: [{
-      data: [100000, 99000, 101000, 103305],
-      borderColor: '#2dd4bf',
-      backgroundColor: 'rgba(45, 212, 191, 0.12)',
-      fill: true,
-      tension: 0.4,
-      pointRadius: 4,
-      pointBackgroundColor: '#2dd4bf',
-      borderWidth: 2
-    }]
-  },
-  options: {
-    responsive: true,
-    maintainAspectRatio: false,
-    plugins: { legend: { display: false } },
-    scales: {
-      x: { display: false },
-      y: {
-        grid: { color: '#1e293b' },
-        ticks: { color: '#64748b', callback: v => (v/1000) + 'k' }
-      }
-    }
-  }
+new Chart(document.getElementById('equityChart'),{
+  type:'line',
+  data:{labels:['Start','Day1','Now'],datasets:[{data:[100000,99000,103305],borderColor:'#2dd4bf',backgroundColor:'rgba(45,212,191,0.12)',fill:true,tension:0.4,pointRadius:4,pointBackgroundColor:'#2dd4bf',borderWidth:2}]},
+  options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{display:false},y:{grid:{color:'#1e293b'},ticks:{color:'#64748b',callback:v=>(v/1000)+'k'}}}}
 });
-
-const alCtx = document.getElementById('allocChart').getContext('2d');
-new Chart(alCtx, {
-  type: 'doughnut',
-  data: {
-    labels: ['Shida', 'West Orchard', 'Steel Yard', 'East Roof', 'Urban Signal', 'North Grid', 'Lisi'],
-    datasets: [{
-      data: [19.3, 19.0, 17.6, 15.9, 15.6, 10.9, 1.4],
-      backgroundColor: ['#2dd4bf', '#34d399', '#60a5fa', '#a78bfa', '#f472b6', '#fbbf24', '#94a3b8'],
-      borderWidth: 0
-    }]
-  },
-  options: {
-    responsive: true,
-    maintainAspectRatio: false,
-    cutout: '68%',
-    plugins: { legend: { display: false } }
-  }
+new Chart(document.getElementById('allocChart'),{
+  type:'doughnut',
+  data:{labels:['Shida','West','Steel','East Roof','Urban','North Grid','Lisi'],datasets:[{data:[19.3,19.0,17.6,15.9,15.6,10.9,1.4],backgroundColor:['#2dd4bf','#34d399','#60a5fa','#a78bfa','#f472b6','#fbbf24','#94a3b8'],borderWidth:0}]},
+  options:{responsive:true,maintainAspectRatio:false,cutout:'68%',plugins:{legend:{display:false}}}
 });
-
-// Simple screenshot preview + OCR
-const filesInput = document.getElementById('files');
-const drop = document.getElementById('drop');
-const preview = document.getElementById('preview');
-const ocrResult = document.getElementById('ocrResult');
-let selected = [];
-
-function renderPreviews() {
-  preview.innerHTML = '';
-  selected.forEach((f, i) => {
-    const url = URL.createObjectURL(f);
-    const div = document.createElement('div');
-    div.style.cssText = 'width:120px;border:1px solid #1e293b;border-radius:8px;overflow:hidden';
-    div.innerHTML = `<img src="${url}" style="width:100%;height:80px;object-fit:cover"><div style="padding:4px 6px;font-size:10px;color:#94a3b8">${f.name}</div>`;
-    preview.appendChild(div);
-  });
-}
-
-filesInput.addEventListener('change', e => {
-  selected = [...e.target.files];
-  renderPreviews();
-});
-
-['dragenter','dragover'].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.add('drag'); }));
-['dragleave','drop'].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.remove('drag'); }));
-drop.addEventListener('drop', e => {
-  selected = [...e.dataTransfer.files].filter(f => f.type.startsWith('image/'));
-  renderPreviews();
-});
-
-document.getElementById('clearBtn').onclick = () => {
-  selected = [];
-  filesInput.value = '';
-  preview.innerHTML = '';
-  ocrResult.style.display = 'none';
-  ocrResult.textContent = '';
-};
-
-document.getElementById('analyzeBtn').onclick = async () => {
-  if (!selected.length) {
-    alert('Сначала выбери скриншоты');
-    return;
-  }
-  ocrResult.style.display = 'block';
-  ocrResult.textContent = 'Распознавание...';
-  try {
-    const worker = await Tesseract.createWorker('eng+rus');
-    let full = '';
-    for (const f of selected) {
-      const { data: { text } } = await worker.recognize(f);
-      full += `\n\n=== ${f.name} ===\n` + text;
-    }
-    await worker.terminate();
-    ocrResult.textContent = full.trim() || 'Текст не распознан';
-  } catch (err) {
-    ocrResult.textContent = 'Ошибка OCR: ' + err.message;
-  }
-};
 </script>
 </body>
 </html>

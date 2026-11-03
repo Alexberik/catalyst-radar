@@ -24,6 +24,7 @@ Refero's live style search was unavailable because its connected subscription re
    - strict exchange allowlist, symbol limits, rate limiting and guaranteed client close;
    - no API keys, account access, private endpoints or order placement.
 6. Added CCXT dependency and backend API documentation.
+7. Added a FluxRPC HTTP read-only token snapshot endpoint using documented Solana JSON-RPC methods: token supply, largest token accounts, `getMultipleAccounts` with `jsonParsed` to resolve token-account authorities where returned, and recent signatures. Results include slot context, cache timestamps, partial-source errors and explicit limits on interpreting holder accounts. The API key is server-side only.
 
 ## Reference repository adoption policy
 
@@ -35,7 +36,7 @@ Refero's live style search was unavailable because its connected subscription re
 - Coinpulse: borrow asset-detail, chart and responsive component patterns; do not migrate framework or copy code/assets without license review.
 - Awesome finance APIs: use as provider procurement matrix; verify price, quotas, coverage and redistribution rights directly before enabling paid feeds.
 - Prediction market tools: optional catalyst context only; market-implied event odds must never be presented as Catalyst Radar's asset-price forecast.
-- FluxRPC / Yellowstone: still a separate P1 integration. The docs were reviewed, but no persistent stream consumer is claimed in this batch.
+- FluxRPC HTTP: read-only token snapshot endpoint is implemented and cached. It requires `FLUXRPC_API_KEY`; no live result is claimed until the secret is configured and a smoke test passes. FluxRPC WebSocket/Yellowstone persistent stream consumer remains P1.
 - Helius / Birdeye: optional server-side enrichment paths exist; active use depends on keys and successful integration checks.
 - Jupiter: quote-only route simulation remains planned; no swap or wallet signing.
 - PostgreSQL / TimescaleDB: required before durable history, immutable forecasts and paper ledger can be considered production-ready.

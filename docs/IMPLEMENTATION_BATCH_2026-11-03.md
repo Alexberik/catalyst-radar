@@ -24,7 +24,9 @@ Refero's live style search was unavailable because its connected subscription re
    - strict exchange allowlist, symbol limits, rate limiting and guaranteed client close;
    - no API keys, account access, private endpoints or order placement.
 6. Added CCXT dependency and backend API documentation.
-7. Added a FluxRPC HTTP read-only token snapshot endpoint using documented Solana JSON-RPC methods: token supply, largest token accounts, `getMultipleAccounts` with `jsonParsed` to resolve token-account authorities where returned, and recent signatures. Results include slot context, cache timestamps, partial-source errors and explicit limits on interpreting holder accounts. The API key is server-side only.
+7. Added a FluxRPC HTTP read-only token snapshot endpoint using documented Solana JSON-RPC methods: token supply, largest token accounts, `getMultipleAccounts` with `jsonParsed` to resolve token-account authorities where returned, and recent signatures. Results include slot context, cache timestamps, partial-source errors and explicit limits on interpreting holder accounts.
+8. Fixed the legacy Vercel catch-all rewrite after preview smoke tests exposed that it routed every request to `/index.py` and caused FastAPI 404s. The standard FastAPI entrypoint now uses Vercel's auto-detected routing without the obsolete rewrite.
+9. Preview smoke tests passed for `/health` (200), CCXT OKX BTC/USDT tickers, and OHLCV intervals 5m, 30m, 1h and 1d. Binance was unavailable and Bybit rate-limited during the same check; the adapter reports provider-specific failures instead of fabricating values. FluxRPC snapshot returns `not_configured` until `FLUXRPC_API_KEY` is added as a server-side secret. The API key is server-side only.
 
 ## Reference repository adoption policy
 
@@ -43,7 +45,7 @@ Refero's live style search was unavailable because its connected subscription re
 
 ## Release gates still open
 
-- Run Python syntax/import checks and backend tests with CCXT installed.
+- Run Python syntax/import checks and backend tests with CCXT installed; GitHub Actions test result is not yet visible for this branch.
 - Smoke-test deployed `/health`, `/api/v1/discovery`, `/api/v1/markets/ccxt` and `/api/v1/markets/ccxt/ohlcv`.
 - Confirm Vercel Python dependency build and cold-start behavior.
 - Replace ephemeral SQLite with managed PostgreSQL and independent collector worker.

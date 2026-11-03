@@ -82,7 +82,7 @@ Based on the current repository README and backend source:
 - FastAPI backend foundation with discovery, source health, news/events, token-security checks, biotech-event discovery, stock quote hooks and SQLite scan/event history.
 - Optional server-side integrations are present for some providers; many are inactive until credentials are configured.
 - Existing `score_asset` is explicitly a **heuristic discovery score**, not a calibrated probability or expected-return forecast.
-- Backend is not yet deployed/connected to the public frontend according to the repository README. GitHub Pages alone cannot run a persistent backend or securely store private keys.
+- The FastAPI backend is deployed at `https://catalyst-radar-api.vercel.app` and the public frontend has a separate API workspace (`platform-api.js`). GitHub Pages itself remains static and cannot run a persistent collector or securely store private keys.
 
 Do not describe the full platform as production-ready until backend deployment, storage durability, provider health, tests, and forecast validation are verified.
 
@@ -271,3 +271,8 @@ Before paying for anything, measure source gaps and validate terms, quotas, dela
 - Fincept DataHub plan: https://github.com/Fincept-Corporation/FinceptTerminal/tree/main/fincept-qt/docs/datahub-phases
 - Fincept MCP tool guide: https://github.com/Fincept-Corporation/FinceptTerminal/blob/main/fincept-qt/docs/MCP_TOOLS_GUIDE.md
 - Slash / Supabase design references: user-provided reference documents in this conversation.
+
+
+## November 2026 reference expansion
+
+The follow-up audit of the user-supplied CCXT, Crypto Analytics Platform, Awesome Prediction Market Tools, crypto prediction, crypto-price-predict, market-forecast, CoinPulse, Awesome Finance APIs, Freqtrade and TradingAgents repositories is documented in [REFERENCE_REPOSITORY_AUDIT.md](REFERENCE_REPOSITORY_AUDIT.md). The canonical provider checklist is [PROVIDER_REGISTRY.md](PROVIDER_REGISTRY.md). The audit separates reusable design patterns from unverified integrations and records license caveats.

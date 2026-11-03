@@ -43,6 +43,7 @@
     <a class="nav-item" href="#events"><span class="ico">◉</span> Катализаторы и новости</a>
     <a class="nav-item" href="#equities"><span class="ico">▥</span> Акции</a>
     <div class="nav-label">SYSTEM</div>
+    <a class="nav-item" href="#cex"><span class="ico">⇄</span> Биржи / CCXT</a>
     <a class="nav-item" href="#sources"><span class="ico">⌘</span> Источники данных</a>
     <a class="nav-item" href="#methodology"><span class="ico">◎</span> Методология и риски</a>
   </nav>
@@ -68,6 +69,10 @@
   <section class="grid-equal">
     <article class="card section-anchor" id="events"><div class="card-head"><div class="card-title">05 · Catalysts & News</div><button class="card-action" data-reload="news">REFRESH ↗</button></div><p class="card-sub">Новостной поиск — не подтверждение факта. Официальные первичные источники выделяются отдельно.</p><div id="news-content"><div class="empty">Загружаем события…</div></div></article>
     <article class="card section-anchor" id="equities"><div class="card-head"><div class="card-title">06 · Equities / Defense / Rebuild</div><span class="tag">QUOTE FEED</span></div><p class="card-sub">Акции из доступных источников. Отсутствующие котировки не заменяются фиктивными значениями.</p><div id="equities-content"><div class="empty">Загружаем акции…</div></div></article>
+  </section>
+  <section class="grid-equal">
+    <article class="card section-anchor" id="cex"><div class="card-head"><div class="card-title">07 · Centralized Exchange Matrix</div><span class="tag">CCXT · PUBLIC</span></div><p class="card-sub">Сопоставимые публичные котировки выбранных бирж. Никакого доступа к аккаунтам или размещения ордеров.</p><div id="ccxt-content"><div class="empty">Загружаем публичные рынки CCXT…</div></div></article>
+    <article class="card"><div class="card-head"><div class="card-title">08 · OHLCV Research Feed</div><select id="ohlcv-timeframe" class="btn" aria-label="Candle timeframe"><option value="5m">5m</option><option value="30m">30m</option><option value="1h" selected>1h</option><option value="1d">1d</option></select></div><p class="card-sub">Реальные свечи из публичного CCXT API · BTC/USDT · Binance.</p><div id="ohlcv-content"><div class="empty">Загружаем свечи…</div></div></article>
   </section>
   <section class="grid-equal">
     <article class="card section-anchor" id="sources"><div class="card-head"><div class="card-title">07 · Provider Health</div><button class="card-action" data-reload="sources">CHECK ↗</button></div><div id="sources-content" class="source-list"><div class="empty">Проверяем источники…</div></div></article>

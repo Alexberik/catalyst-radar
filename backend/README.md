@@ -1,6 +1,6 @@
 # Catalyst Radar Data API
 
-Backend foundation for multi-source market discovery, event collection, source health, and historical signal storage. The public GitHub Pages site remains static. A Vercel serverless deployment is live at https://catalyst-radar-api.vercel.app and is consumed by the frontend API workspace. This is an initial serverless deployment, not yet a durable production data platform.
+Backend foundation for multi-source market discovery, event collection, source health, and historical signal storage. The public GitHub Pages site remains static. A Vercel FastAPI deployment is used by the frontend API workspace. Vercel auto-detects the `backend/index.py` FastAPI entrypoint; no legacy catch-all rewrite is configured, so request paths reach FastAPI unchanged. This is not yet a durable production data platform.
 
 ## Run locally
 

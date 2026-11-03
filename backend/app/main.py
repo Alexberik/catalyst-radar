@@ -3,6 +3,7 @@ from __future__ import annotations
 import asyncio
 import json
 import os
+import re
 import sqlite3
 import time
 from contextlib import asynccontextmanager, contextmanager
@@ -485,6 +486,8 @@ async def fluxrpc_json_rpc(client: httpx.AsyncClient, method: str, params: list[
 @app.get(f"{API_PREFIX}/solana/asset/{{mint}}/snapshot")
 async def solana_asset_snapshot(mint: str, limit: int = Query(default=30, ge=5, le=100)):
     """Read-only Solana token supply, largest token accounts and recent address activity."""
+    if not re.fullmatch(r"[1-9A-HJ-NP-Za-km-z]{32,44}", mint):
+        return {"status":"invalid_mint_address","source":"FluxRPC","mint":mint,"checked_at":now_iso(),"message":"Expected a base58 Solana public key."}
     if not os.getenv("FLUXRPC_API_KEY"):
         _source_status["fluxrpc_http"] = {"ok":False,"configured":False,"checked_at":now_iso(),"error":"FLUXRPC_API_KEY not configured"}
         return {"status":"not_configured","source":"FluxRPC","mint":mint,"checked_at":now_iso(),"message":"Set FLUXRPC_API_KEY as a server-side backend secret."}
@@ -537,8 +540,7 @@ async def solana_asset_snapshot(mint: str, limit: int = Query(default=30, ge=5, 
         total_supply = num(supply_value.get("uiAmountString"))
         top_share = (top_total / total_supply * 100) if total_supply and total_supply > 0 else None
         signatures = data.get("recent_signatures") or []
-        if not errors:
-            _source_status["fluxrpc_http"] = {"ok":True,"configured":True,"checked_at":now_iso(),"error":None}
+        _source_status["fluxrpc_http"] = {"ok":not bool(errors),"configured":True,"checked_at":now_iso(),"error":"partial response" if errors else None}
         return {
             "status":"partial" if errors else "available",
             "source":"FluxRPC Solana JSON-RPC",

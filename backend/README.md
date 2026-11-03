@@ -33,6 +33,22 @@ Open `http://localhost:8000/docs`.
 - `GET /api/v1/markets/ccxt/ohlcv?exchange_id=binance&symbol=BTC/USDT&timeframe=1h&limit=200` — public OHLCV candles for 5m, 30m, 1h or 1d research intervals.
 - `GET /api/v1/solana/asset/{mint}/snapshot?limit=30` — FluxRPC read-only token supply, largest token accounts and recent address signatures. Requires server-side `FLUXRPC_API_KEY`.
 
+## AI Trading Agent — approval-gated foundation
+
+The first trading-agent increment adds a **trade-intent workflow**, not live trading.
+
+- `GET /api/v1/trading/status` — reports whether the control secret is configured and explicitly reports `execution_enabled=false`.
+- `POST /api/v1/trading/intents` — stores a normalized Spot or Futures trade plan in `pending_approval`.
+- `GET /api/v1/trading/intents` — lists saved plans.
+- `POST /api/v1/trading/intents/{id}/approve` — records human approval and moves the plan to `approved_pending_execution`.
+- `POST /api/v1/trading/intents/{id}/cancel` — cancels a plan before execution.
+
+All control routes require the server-side `TRADING_CONTROL_TOKEN` in the `X-Trading-Control-Token` header. The secret must never be embedded in GitHub Pages JavaScript or sent to the browser. Until a real authenticated user session / secure backend proxy is implemented, these routes are not wired to the public static frontend.
+
+**Important:** approval does not place an order. This increment intentionally contains no Binance private API calls and no order submission. No exchange API key is needed. Futures intents require a stop-loss, and the schema currently enforces 1x leverage only. A separate execution adapter, exchange filters/precision validation, margin-mode checks, reduce-only/position-mode handling, idempotency, order reconciliation, protective-order verification, durable PostgreSQL storage, audit logs, and kill switch must pass tests before any live execution is enabled.
+
+For Binance API credentials in a future increment, use a dedicated key with only the minimum required trading/read permissions, no withdrawal permission, IP restrictions where supported, and server-side secret storage. Never paste credentials into chat or commit them to the repository.
+
 ## Sources and limitations
 
 **Implemented requests:** DEX Screener profiles/boosts, GeckoTerminal new pools, CoinPaprika tickers, Binance 24-hour spot tickers, CCXT public CEX ticker/OHLCV adapters (allowlisted exchanges; no private credentials or order methods), FluxRPC HTTP JSON-RPC snapshot reads (token supply, largest token accounts, recent signatures; key required), GDELT news discovery, GoPlus token security for supported EVM chains, RugCheck summaries for Solana, ClinicalTrials.gov, and openFDA drug-application records. CoinGecko and CryptoPanic activate only when server-side keys are configured; SEC EDGAR activates only when `SEC_CIKS` is set and uses `SEC_USER_AGENT`. Finnhub quotes require `FINNHUB_API_KEY`. X, Reddit, Helius and Birdeye integrations activate when their server-side credentials are configured.
@@ -47,7 +63,7 @@ Open `http://localhost:8000/docs`.
 - Promoted/boosted tokens are flagged and penalized; they are not treated as organic demand.
 - News from aggregators is marked unverified until corroborated by an official primary source.
 - SQLite is suitable for local development only. Use persistent storage/PostgreSQL before production deployment; ephemeral hosting may lose SQLite data.
-- This service does not place real trades and does not store exchange trading credentials.
+- The market-data service does not place real trades or store exchange trading credentials. The new AI Trading Agent foundation stores approval-gated trade intents only; approval does not submit orders.
 
 ## Current deployment status and production gaps
 
